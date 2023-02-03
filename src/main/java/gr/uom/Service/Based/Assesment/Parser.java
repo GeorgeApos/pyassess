@@ -51,16 +51,21 @@ public class Parser {
                 Boolean stmtsFind = stmtsMatcher.find();
 
                 for(int i=0; i < fileList.size(); i++) {
-                    if (fileFind && covFind && missFind && stmtsFind) {
+                    if (fileFind) {
                         String regexFileName = fileMatcher.group(1);
-                        String Statements = stmtsMatcher.group(1);
-                        String Miss = missMatcher.group(1);
-                        String Coverage = covMatcher.group(1);
-
                         if (fileList.get(i).getName().equals(regexFileName)) {
-                            fileList.get(i).setStmts(Integer.parseInt(Statements));
-                            fileList.get(i).setMiss(Integer.parseInt(Miss));
-                            fileList.get(i).setCoverage(Integer.parseInt(Coverage));
+                            if (covFind) {
+                                String Coverage = covMatcher.group(1);
+                                fileList.get(i).setCoverage(Integer.parseInt(Coverage));
+                            }
+                            if (missFind) {
+                                String Miss = missMatcher.group(1);
+                                fileList.get(i).setMiss(Integer.parseInt(Miss));
+                            }
+                            if (stmtsFind) {
+                                String Statements = stmtsMatcher.group(1);
+                                fileList.get(i).setStmts(Integer.parseInt(Statements));
+                            }
                         }
                     }
                 }
@@ -76,13 +81,16 @@ public class Parser {
                 Pattern totalCovPattern = Pattern.compile("^TOTAL\\s+\\d+\\s+\\d+\\s+([0-9]+).");
                 Matcher totalCovMatcher = totalCovPattern.matcher(response);
                 Boolean totalCovFind = totalCovMatcher.find();
-                if(totalStmtsFind && totalMissFind && totalCovFind){
+                if(totalStmtsFind){
                     Long stmts = Long.parseLong(totalStmtsMatcher.group(1));
-                    Long miss = Long.parseLong(totalMissMatcher.group(1));
-                    Long cov = Long.parseLong(totalCovMatcher.group(1));
-
                     project.setTotalStmts(stmts);
+                }
+                if(totalMissFind){
+                    Long miss = Long.parseLong(totalMissMatcher.group(1));
                     project.setTotalMiss(miss);
+                }
+                if(totalCovFind){
+                    Long cov = Long.parseLong(totalCovMatcher.group(1));
                     project.setTotalCoverage(cov);
                 }
             }
@@ -127,8 +135,11 @@ public class Parser {
                 Pattern similarityPattern = Pattern.compile("m([+-]?[0-9]*\\.?[0-9]+(?:[eE][+-]?[0-9]+)?)");
                 Matcher similarityMatcher = similarityPattern.matcher(similarityResponse.get(i));
                 Boolean similarityFind = similarityMatcher.find();
-                if (fileFind && similarityFind) {
+                if (fileFind) {
                     String regexFileName = fileMatcher.group(1);
+
+                }
+                if (similarityFind) {
                     Double similarity = Double.valueOf(similarityMatcher.group(1));
                     similarityMap.get(mainFile).add(similarity);
                 }
@@ -167,11 +178,12 @@ public class Parser {
                     Matcher previousRatingMatcher = previousRatingPattern.matcher(currentLine);
                     Boolean previousRatingFind = previousRatingMatcher.find();
 
-                    if (ratingFind && previousRatingFind) {
+                    if (ratingFind) {
                         Double rating = Double.valueOf(ratingMatcher.group(1));
-                        Double previousRating = Double.valueOf(previousRatingMatcher.group(1));
-
                         currentProjectFile.setRating(rating);
+                    }
+                    if (previousRatingFind) {
+                        Double previousRating = Double.valueOf(previousRatingMatcher.group(1));
                         currentProjectFile.setPreviousRating(previousRating);
                     }
                 }
