@@ -1,0 +1,8 @@
+version: "3"
+services:
+  backend:
+    build: .
+    ports:
+      - "8000:5000"
+  redis:
+    image: "ubuntu:latest"
