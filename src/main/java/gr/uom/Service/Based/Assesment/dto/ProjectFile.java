@@ -2,6 +2,7 @@ package gr.uom.Service.Based.Assesment.dto;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ProjectFile {
     File firstFile;
@@ -12,9 +13,9 @@ public class ProjectFile {
     ArrayList<String> comments;
     Double rating;
     Double previousRating;
-    ArrayList<Double> similarity;
+    HashMap<String, Double> similarity;
 
-    public ProjectFile(File firstFile, ArrayList<Double> similarity){
+    public ProjectFile(File firstFile, HashMap<String, Double> similarity){
         this.firstFile = firstFile;
         this.similarity = similarity;
     }
@@ -92,11 +93,11 @@ public class ProjectFile {
         this.previousRating = previousRating;
     }
 
-    public ArrayList<Double> getSimilarity() {
+    public HashMap<String, Double> getSimilarity() {
         return similarity;
     }
 
-    public void setSimilarity(ArrayList<Double> similarity) {
+    public void setSimilarity(HashMap<String, Double> similarity) {
         this.similarity = similarity;
     }
 }

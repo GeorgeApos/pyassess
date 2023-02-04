@@ -108,7 +108,7 @@ public class Parser {
     public static void storeSimilarity(ArrayList<String> similarityResponse, ArrayList<ProjectFile> fileList, Project project){
         String mainFile = "";
         int position = 0;
-        HashMap<String, ArrayList<Double>> similarityMap = new HashMap<>();
+        HashMap<String, HashMap<String, Double>> similarityMap = new HashMap<>();
 
         for(int i=0; i < similarityResponse.size(); i++) {
             if (similarityResponse.get(i).contains("Code duplication probability for")) {
@@ -125,7 +125,7 @@ public class Parser {
                             position = j;
                         }
                     }
-                    similarityMap.put(mainFile, new ArrayList<Double>());
+                    similarityMap.put(mainFile, new HashMap<>());
                 }
             } else if (similarityResponse.get(i).startsWith(project.getDirectory())) {
                 Pattern filePattern = Pattern.compile("([^\\\\]+.py)");
@@ -138,15 +138,20 @@ public class Parser {
                 if (fileFind) {
                     String regexFileName = fileMatcher.group(1);
 
-                }
-                if (similarityFind) {
-                    Double similarity = Double.valueOf(similarityMatcher.group(1));
-                    similarityMap.get(mainFile).add(similarity);
+                    if (!similarityMap.containsKey(mainFile)) {
+                        similarityMap.put(mainFile, new HashMap<>());
+                    }
+                    Double similarity = 0.0;
+                    if (similarityFind) {
+                        similarity = Double.valueOf(similarityMatcher.group(1));
+                    }
+                    similarityMap.get(mainFile).put(regexFileName, similarity);
                 }
             }
         }
         fileList.get(position).setSimilarity(similarityMap.get(mainFile));
     }
+
 
     public static void storeComments(ArrayList<String> commentsResponse, ArrayList<ProjectFile> fileList, Project project) {
         String mainFile = "";

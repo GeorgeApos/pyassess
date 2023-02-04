@@ -31,7 +31,7 @@ public class Service {
         File[] listOfFiles = folder.listFiles();
         Project mainProject = new Project(homeDirectory);
         ArrayList<ProjectFile> fileList = new ArrayList<ProjectFile>();
-        ArrayList<Double> fileSimilarityLIst = new ArrayList<Double>(listOfFiles.length);
+        HashMap<String, Double> fileSimilarityLIst = new HashMap<String, Double>(listOfFiles.length);
 
         try (Stream<Path> stream = Files.walk(dir)){
             stream
