@@ -165,7 +165,7 @@ public class Parser {
                     currentProjectFile = findProjectFile(mainFile, fileList);
                 }
             } else if (currentLine.startsWith(project.getDirectory())) {
-                comments.add(currentLine);
+                comments.add(currentLine.replace("'", "\\'"));
             } else if (currentLine.contains("Your code has been rated at")) {
                 if (currentProjectFile != null) {
                     currentProjectFile.setComments(comments);
