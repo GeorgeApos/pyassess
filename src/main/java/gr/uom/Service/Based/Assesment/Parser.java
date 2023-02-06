@@ -256,9 +256,9 @@ public class Parser {
                 if(request.equals("mainFile")){
                     return "([^/]+.py)";
                 }else if(request.equals("file")) {
-                    return "([^/]+.py)\\s+\\d+.\\d+";
+                    return "([^/]+.py)";
                 }else if(request.equals("similarity")) {
-                    return "[^/]+.py\\s+(\\d+.\\d+)";
+                    return "([0-9]+\\.[0-9]+)";
                 }
             }else if(command.startsWith("pylint")){
                 if(request.equals("file")){
