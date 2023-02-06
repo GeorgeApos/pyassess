@@ -2,6 +2,7 @@ package gr.uom.Service.Based.Assesment;
 
 import gr.uom.Service.Based.Assesment.dto.Project;
 import gr.uom.Service.Based.Assesment.dto.ProjectFile;
+import org.hibernate.engine.transaction.jta.platform.internal.SynchronizationRegistryBasedSynchronizationStrategy;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Parser {
+
 
 
     public static long countLineBufferedReader(Project project, String fileName) {
@@ -34,19 +36,19 @@ public class Parser {
 
         if(command.startsWith("pytest --cov=")) {
             if(response.startsWith(project.getDirectory())){
-                Pattern filePattern = Pattern.compile("([^\\\\]+.py)");
+                Pattern filePattern = Pattern.compile(regexPattern(command,"file"));
                 Matcher fileMatcher = filePattern.matcher(response);
                 Boolean fileFind = fileMatcher.find();
 
-                Pattern covPattern = Pattern.compile(".*[\\s]+([0-9]+)");
+                Pattern covPattern = Pattern.compile(regexPattern(command,"cov"));
                 Matcher covMatcher = covPattern.matcher(response);
                 Boolean covFind = covMatcher.find();
 
-                Pattern missPattern = Pattern.compile(".*[\\s]+([0-9]+)[\\s]+[0-9]+");
+                Pattern missPattern = Pattern.compile(regexPattern(command,"miss"));
                 Matcher missMatcher = missPattern.matcher(response);
                 Boolean missFind = missMatcher.find();
 
-                Pattern stmtsPattern = Pattern.compile("^.*?[^\\s]+[\\s]+([0-9]+)[\\s]+[0-9]+[\\s]+[0-9]+");
+                Pattern stmtsPattern = Pattern.compile(regexPattern(command,"stmts"));
                 Matcher stmtsMatcher = stmtsPattern.matcher(response);
                 Boolean stmtsFind = stmtsMatcher.find();
 
@@ -70,15 +72,15 @@ public class Parser {
                     }
                 }
             } else if (response.startsWith("TOTAL")){
-                Pattern totalStmtsPattern = Pattern.compile("^TOTAL\\s+([0-9]+)");
+                Pattern totalStmtsPattern = Pattern.compile(regexPattern(command,"totalStmts"));
                 Matcher totalStmtsMatcher = totalStmtsPattern.matcher(response);
                 Boolean totalStmtsFind = totalStmtsMatcher.find();
 
-                Pattern totalMissPattern = Pattern.compile("^TOTAL\\s+\\d+\\s+([0-9]+)");
+                Pattern totalMissPattern = Pattern.compile(regexPattern(command,"totalMiss"));
                 Matcher totalMissMatcher = totalMissPattern.matcher(response);
                 Boolean totalMissFind = totalMissMatcher.find();
 
-                Pattern totalCovPattern = Pattern.compile("^TOTAL\\s+\\d+\\s+\\d+\\s+([0-9]+).");
+                Pattern totalCovPattern = Pattern.compile(regexPattern(command,"totalCov"));
                 Matcher totalCovMatcher = totalCovPattern.matcher(response);
                 Boolean totalCovFind = totalCovMatcher.find();
                 if(totalStmtsFind){
@@ -114,7 +116,7 @@ public class Parser {
             if (similarityResponse.get(i).contains("Code duplication probability for")) {
                 fileList.get(position).setSimilarity(similarityMap.get(mainFile));
                 mainFile = "";
-                Pattern mainFilePattern = Pattern.compile("([^\\\\]+.py)");
+                Pattern mainFilePattern = Pattern.compile(regexPattern("duplication", "mainFile"));
                 Matcher mainFileMatcher = mainFilePattern.matcher(similarityResponse.get(i));
                 Boolean fileFind = mainFileMatcher.find();
 
@@ -128,11 +130,11 @@ public class Parser {
                     similarityMap.put(mainFile, new HashMap<>());
                 }
             } else if (similarityResponse.get(i).startsWith(project.getDirectory())) {
-                Pattern filePattern = Pattern.compile("([^\\\\]+.py)");
+                Pattern filePattern = Pattern.compile(regexPattern("duplication", "file"));
                 Matcher fileMatcher = filePattern.matcher(similarityResponse.get(i));
                 Boolean fileFind = fileMatcher.find();
 
-                Pattern similarityPattern = Pattern.compile("m([+-]?[0-9]*\\.?[0-9]+(?:[eE][+-]?[0-9]+)?)");
+                Pattern similarityPattern = Pattern.compile(regexPattern("duplication", "similarity"));
                 Matcher similarityMatcher = similarityPattern.matcher(similarityResponse.get(i));
                 Boolean similarityFind = similarityMatcher.find();
                 if (fileFind) {
@@ -162,7 +164,7 @@ public class Parser {
             String currentLine = commentsResponse.get(i);
             if (currentLine.startsWith("************* Module")) {
 
-                Pattern filePattern = Pattern.compile("\\b(\\w+)$");
+                Pattern filePattern = Pattern.compile(regexPattern("pylint", "file"));
                 Matcher fileMatcher = filePattern.matcher(currentLine);
                 Boolean fileFind = fileMatcher.find();
                 if (fileFind) {
@@ -175,11 +177,11 @@ public class Parser {
                 if (currentProjectFile != null) {
                     currentProjectFile.setComments(comments);
                     comments = new ArrayList<>();
-                    Pattern ratingPattern = Pattern.compile("at (\\b[0-9]+\\.[0-9]+)/10");
+                    Pattern ratingPattern = Pattern.compile(regexPattern("pylint", "rating"));
                     Matcher ratingMatcher = ratingPattern.matcher(currentLine);
                     Boolean ratingFind = ratingMatcher.find();
 
-                    Pattern previousRatingPattern = Pattern.compile("run: (\\b[0-9]+\\.[0-9]+)/10");
+                    Pattern previousRatingPattern = Pattern.compile(regexPattern("pylint", "previousRating"));
                     Matcher previousRatingMatcher = previousRatingPattern.matcher(currentLine);
                     Boolean previousRatingFind = previousRatingMatcher.find();
 
@@ -196,8 +198,81 @@ public class Parser {
         }
     }
 
+    private static String regexPattern(String command, String request){
+        Boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
 
+        if(isWindows){
+            if(command.startsWith("pytest")){
+                if(request.equals("file")){
+                    return "([^\\\\]+.py)";
+                }else if(request.equals("cov")) {
+                    return ".*[\\s]+([0-9]+)";
+                }else if(request.equals("miss")) {
+                    return ".*[\\s]+([0-9]+)[\\s]+[0-9]+";
+                }else if(request.equals("stmts")) {
+                    return "^.*?[^\\s]+[\\s]+([0-9]+)[\\s]+[0-9]+[\\s]+[0-9]+";
+                }else if(request.equals("totalCov")) {
+                    return "^TOTAL\\s+\\d+\\s+\\d+\\s+([0-9]+).";
+                }else if(request.equals("totalMiss")) {
+                    return "^TOTAL\\s+\\d+\\s+([0-9]+)";
+                }else if(request.equals("totalStmts")) {
+                    return "^TOTAL\\s+([0-9]+)";
+                }
+            }else if (command.startsWith("duplication")){
+                if(request.equals("mainFile")){
+                    return "([^\\\\]+.py)";
+                }else if(request.equals("file")) {
+                    return "([^\\\\]+.py)";
+                }else if(request.equals("similarity")) {
+                    return "m([+-]?[0-9]*\\.?[0-9]+(?:[eE][+-]?[0-9]+)?)";
+                }
+            }else if(command.startsWith("pylint")){
+                if(request.equals("file")){
+                    return "\\b(\\w+)$";
+                }else if(request.equals("rating")) {
+                    return "at (\\b[0-9]+\\.[0-9]+)/10";
+                }else if(request.equals("previousRating")) {
+                    return "run: (\\b[0-9]+\\.[0-9]+)/10";
+                }
+            }
+        }else {
+            if(command.startsWith("pytest")){
+                if(request.equals("file")){
+                    return "([^/]+.py)";
+                }else if(request.equals("cov")) {
+                    return ".*\\s+\\d+\\s+\\d+\\s+(\\d+)%";
+                }else if(request.equals("miss")) {
+                    return ".*\\s+\\d+\\s+(\\d+)\\s+\\d+%";
+                }else if(request.equals("stmts")) {
+                    return ".*\\s+(\\d+)\\s+\\d+\\s+\\d+%";
+                }else if(request.equals("totalCov")) {
+                    return "^TOTAL\\s+\\d+\\s+\\d+\\s+([0-9]+).";
+                }else if(request.equals("totalMiss")) {
+                    return "^TOTAL\\s+\\d+\\s+([0-9]+)";
+                }else if(request.equals("totalStmts")) {
+                    return "^TOTAL\\s+([0-9]+)";
+                }
+            }else if (command.startsWith("duplication")){
+                if(request.equals("mainFile")){
+                    return "([^/]+.py)";
+                }else if(request.equals("file")) {
+                    return "([^/]+.py)\\s+\\d+.\\d+";
+                }else if(request.equals("similarity")) {
+                    return "[^/]+.py\\s+(\\d+.\\d+)";
+                }
+            }else if(command.startsWith("pylint")){
+                if(request.equals("file")){
+                    return "\\b(\\w+)$";
+                }else if(request.equals("rating")) {
+                    return "at (\\b[0-9]+\\.[0-9]+)/10";
+                }else if(request.equals("previousRating")) {
+                    return "run: (\\b[0-9]+\\.[0-9]+)/10";
+                }
+            }
+        }
 
+        return "";
+    }
 
     private static ProjectFile findProjectFile(String fileName, ArrayList<ProjectFile> fileList) {
         for (ProjectFile file : fileList) {
@@ -207,4 +282,5 @@ public class Parser {
         }
         return null;
     }
+
 }
