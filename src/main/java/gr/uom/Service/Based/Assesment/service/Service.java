@@ -6,15 +6,12 @@ import gr.uom.Service.Based.Assesment.dto.ProjectFile;
 
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.HashMap;
@@ -45,14 +42,35 @@ public class Service {
                     });
         }
 
-        for (ProjectFile file: fileList){
-            executeCommand(mainProject, fileList, "pylint ", String.valueOf(file.getFirstFile()));
+        int fileListSize = fileList.size()/4;
+        List<ArrayList<ProjectFile>> chunkedLists = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            int startIndex = i * fileListSize;
+            int endIndex = startIndex + fileListSize;
+            if (i == 3) {
+                endIndex = fileList.size();
+            }
+            chunkedLists.add(new ArrayList<>(fileList.subList(startIndex, endIndex)));
         }
 
-        executeCommand(mainProject, fileList,"pytest --cov=", homeDirectory);
-        executeCommand(mainProject, fileList,"python3 -W ignore /home/Documents/duplicate-code-detection-tool/duplicate_code_detection.py -d  ", homeDirectory);
-        executeCommand(mainProject, fileList,"pipreqs --force", homeDirectory);
-        System.out.println("PipReqs counted " + countLineBufferedReader(mainProject,homeDirectory+"/requirements.txt") + " dependencies on this project.");
+        Thread firstThread = new Thread(testsRunnable(mainProject, fileList, homeDirectory));
+        Thread secondThread = new Thread(pylintRunnable(chunkedLists, mainProject, 0));
+        Thread thirdThread = new Thread(pylintRunnable(chunkedLists, mainProject, 1));
+        Thread fourthThread = new Thread(pylintRunnable(chunkedLists, mainProject, 2));
+        Thread fifthTread = new Thread(pylintRunnable(chunkedLists, mainProject, 3));
+
+        firstThread.start();
+        secondThread.start();
+        thirdThread.start();
+        fourthThread.start();
+        fifthTread.start();
+
+
+        firstThread.join();
+        secondThread.join();
+        thirdThread.join();
+        fourthThread.join();
+        fifthTread.join();
 
         System.out.println(mainProject);
     }
@@ -87,8 +105,33 @@ public class Service {
     }
 
 
+    public Runnable pylintRunnable( List<ArrayList<ProjectFile>> chunkedLists, Project mainProject, int index){
+        return () -> {
+            for (ProjectFile file : chunkedLists.get(index))
+                try {
+                    executeCommand(mainProject, chunkedLists.get(index), "pylint ", String.valueOf(file.getFirstFile()));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+        };
+    }
 
-
+    public Runnable testsRunnable(Project mainProject, ArrayList<ProjectFile> fileList, String homeDirectory) {
+        return () -> {
+            try {
+                executeCommand(mainProject, fileList, "pytest --cov=", homeDirectory);
+                executeCommand(mainProject, fileList, "python3 -W ignore /home/Documents/duplicate-code-detection-tool/duplicate_code_detection.py -d  ", homeDirectory);
+                executeCommand(mainProject, fileList, "pipreqs --force", homeDirectory);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println("PipReqs counted " + countLineBufferedReader(mainProject, homeDirectory + "/requirements.txt") + " dependencies on this project.");
+        };
+    }
 
 }
 
