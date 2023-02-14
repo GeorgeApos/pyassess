@@ -1,21 +1,30 @@
 package gr.uom.Service.Based.Assesment.dto;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
+import jakarta.persistence.*;
 
+import java.io.File;
+import java.util.*;
+
+@Entity
 public class ProjectFile {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     File firstFile;
     String name;
     int stmts;
     int miss;
     int coverage;
-    ArrayList<String> comments;
+    @ElementCollection
+    List<String> comments;
     Double rating;
     Double previousRating;
-    HashMap<String, Double> similarity;
+    @ElementCollection
+    Map<String, Double> similarity;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Project project;
 
-    public ProjectFile(File firstFile, HashMap<String, Double> similarity){
+    public ProjectFile(File firstFile, Map<String, Double> similarity){
         this.firstFile = firstFile;
         this.similarity = similarity;
     }
@@ -23,15 +32,17 @@ public class ProjectFile {
     @Override
     public String toString() {
         return "ProjectFile{" +
-                "firstFile=" + firstFile +
+                "id=" + id +
+                ", firstFile=" + firstFile +
                 ", name='" + name + '\'' +
                 ", stmts=" + stmts +
                 ", miss=" + miss +
                 ", coverage=" + coverage +
-                ", comments='" + comments + '\'' +
+                ", comments=" + comments +
                 ", rating=" + rating +
                 ", previousRating=" + previousRating +
                 ", similarity=" + similarity +
+                ", project=" + project +
                 '}';
     }
 
@@ -71,11 +82,11 @@ public class ProjectFile {
         this.coverage = coverage;
     }
 
-    public ArrayList<String> getComments() {
+    public List<String> getComments() {
         return comments;
     }
 
-    public void setComments(ArrayList<String> comments) { this.comments = comments; }
+    public void setComments(List<String> comments) { this.comments = comments; }
 
     public Double getRating() {
         return rating;
@@ -93,11 +104,11 @@ public class ProjectFile {
         this.previousRating = previousRating;
     }
 
-    public HashMap<String, Double> getSimilarity() {
+    public Map<String, Double> getSimilarity() {
         return similarity;
     }
 
-    public void setSimilarity(HashMap<String, Double> similarity) {
+    public void setSimilarity(Map<String, Double> similarity) {
         this.similarity = similarity;
     }
 }

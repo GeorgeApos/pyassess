@@ -8,6 +8,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -110,7 +111,7 @@ public class Parser {
     public static void storeSimilarity(ArrayList<String> similarityResponse, ArrayList<ProjectFile> fileList, Project project){
         String mainFile = "";
         int position = 0;
-        HashMap<String, HashMap<String, Double>> similarityMap = new HashMap<>();
+        Map<String, HashMap<String, Double>> similarityMap = new HashMap<>();
 
         for(int i=0; i < similarityResponse.size(); i++) {
             if (similarityResponse.get(i).contains("Code duplication probability for")) {
@@ -157,7 +158,7 @@ public class Parser {
 
     public static void storeComments(ArrayList<String> commentsResponse, ArrayList<ProjectFile> fileList, Project project) {
         String mainFile = "";
-        ArrayList<String> comments = new ArrayList<>();
+        List<String> comments = new ArrayList<>();
         ProjectFile currentProjectFile = null;
 
         for (int i = 0; i < commentsResponse.size(); i++) {

@@ -1,21 +1,34 @@
 package gr.uom.Service.Based.Assesment.dto;
 
+import jakarta.persistence.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
+@Entity
 public class Project {
-    String directory;
-    ArrayList<String> dependencies;
-    long dependenciesCounter;
-    ArrayList<ProjectFile> files;
-    long totalCoverage;
-    long totalMiss;
-    long totalStmts;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String directory;
+    @ElementCollection
+    private List<String> dependencies;
+    private long dependenciesCounter;
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProjectFile> files;
+    private long totalCoverage;
+    private long totalMiss;
+    private long totalStmts;
+
+    public Project() {
+    }
 
     @Override
     public String toString() {
         return "Project{" +
-                "directory='" + directory + '\'' +
+                "id=" + id +
+                ", directory='" + directory + '\'' +
                 ", dependencies=" + dependencies +
                 ", dependenciesCounter=" + dependenciesCounter +
                 ", files=" + files +
@@ -53,15 +66,15 @@ public class Project {
         this.directory = directory;
     }
 
-    public ArrayList<String> getDependencies() {
+    public List<String> getDependencies() {
         return dependencies;
     }
 
-    public void setDependencies(ArrayList<String> dependencies) {
+    public void setDependencies(List<String> dependencies) {
         this.dependencies = dependencies;
     }
 
-    public ArrayList<ProjectFile> getFiles() {
+    public List<ProjectFile> getFiles() {
         return files;
     }
 
@@ -73,7 +86,7 @@ public class Project {
         this.dependenciesCounter = dependenciesCounter;
     }
 
-    public void setFiles(ArrayList<ProjectFile> files) { this.files = files; }
+    public void setFiles(List<ProjectFile> files) { this.files = files; }
 
     public long getTotalCoverage() {
         return totalCoverage;
