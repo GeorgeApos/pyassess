@@ -1,16 +1,18 @@
-package gr.uom.Service.Based.Assesment.dto;
+package gr.uom.Service.Based.Assesment.model;
 
 import jakarta.persistence.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Entity
 public class Project {
+
+    private static long counter;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String name;
     private String directory;
     @ElementCollection
     private List<String> dependencies;
@@ -21,13 +23,17 @@ public class Project {
     private long totalMiss;
     private long totalStmts;
 
+
+
     public Project() {
+        this.id = counter++;
     }
 
     @Override
     public String toString() {
         return "Project{" +
                 "id=" + id +
+                ", name='" + name + '\'' +
                 ", directory='" + directory + '\'' +
                 ", dependencies=" + dependencies +
                 ", dependenciesCounter=" + dependenciesCounter +
@@ -36,6 +42,22 @@ public class Project {
                 ", totalMiss=" + totalMiss +
                 ", totalStmts=" + totalStmts +
                 '}';
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public long getTotalMiss() {

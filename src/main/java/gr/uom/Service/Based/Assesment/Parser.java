@@ -1,8 +1,7 @@
 package gr.uom.Service.Based.Assesment;
 
-import gr.uom.Service.Based.Assesment.dto.Project;
-import gr.uom.Service.Based.Assesment.dto.ProjectFile;
-import org.hibernate.engine.transaction.jta.platform.internal.SynchronizationRegistryBasedSynchronizationStrategy;
+import gr.uom.Service.Based.Assesment.model.Project;
+import gr.uom.Service.Based.Assesment.model.ProjectFile;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -11,11 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class Parser {
 
-
+    public static void storeNameOfProject(Project mainProject, String directory) {
+        String[] split = directory.split("\\\\");
+        mainProject.setName(split[split.length - 1]);
+    }
 
     public static long countLineBufferedReader(Project project, String fileName) {
         ArrayList<String> dependencies = new ArrayList<>();
@@ -31,7 +32,6 @@ public class Parser {
         return dependencies.size();
 
     }
-
 
     public static void storeDataInObjects(Project project,ArrayList<ProjectFile> fileList, String response, String command) {
 

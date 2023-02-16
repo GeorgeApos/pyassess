@@ -1,4 +1,4 @@
-package gr.uom.Service.Based.Assesment.dto;
+package gr.uom.Service.Based.Assesment.model;
 
 import jakarta.persistence.*;
 
@@ -21,12 +21,16 @@ public class ProjectFile {
     Double previousRating;
     @ElementCollection
     Map<String, Double> similarity;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private Project project;
 
     public ProjectFile(File firstFile, Map<String, Double> similarity){
         this.firstFile = firstFile;
         this.similarity = similarity;
+    }
+
+    public ProjectFile() {
+
     }
 
     @Override
@@ -42,8 +46,24 @@ public class ProjectFile {
                 ", rating=" + rating +
                 ", previousRating=" + previousRating +
                 ", similarity=" + similarity +
-                ", project=" + project +
+                ", projectName=" + project +
                 '}';
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
     }
 
     public File getFirstFile() {

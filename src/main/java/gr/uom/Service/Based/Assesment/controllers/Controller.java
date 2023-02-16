@@ -1,6 +1,8 @@
 package gr.uom.Service.Based.Assesment.controllers;
 
-import gr.uom.Service.Based.Assesment.dto.Project;
+import gr.uom.Service.Based.Assesment.model.Project;
+import gr.uom.Service.Based.Assesment.model.ProjectFile;
+import gr.uom.Service.Based.Assesment.repository.ProjectFileRepository;
 import gr.uom.Service.Based.Assesment.repository.ProjectRepository;
 import gr.uom.Service.Based.Assesment.service.Service;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,9 @@ public class Controller {
     @Autowired
     private ProjectRepository projectRepository;
 
+    @Autowired
+    private ProjectFileRepository projectFileRepository;
+
     @PostMapping("/")
     public ResponseEntity<Project> handleSimpleRequest() throws IOException, ExecutionException, InterruptedException {
         Project savedProject = projectRepository.save(appService.runCommand());
@@ -33,5 +38,10 @@ public class Controller {
     @GetMapping("/")
     public List<Project> getAllProjects() {
         return appService.getAllProjects();
+    }
+
+    @GetMapping("/files")
+    public List<ProjectFile> getAllProjectFiles() {
+        return appService.getAllProjectFiles();
     }
 }
