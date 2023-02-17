@@ -1,8 +1,11 @@
 package gr.uom.Service.Based.Assesment.service;
 
 import static gr.uom.Service.Based.Assesment.Parser.*;
-import gr.uom.Service.Based.Assesment.dto.Project;
-import gr.uom.Service.Based.Assesment.dto.ProjectFile;
+import gr.uom.Service.Based.Assesment.model.Project;
+import gr.uom.Service.Based.Assesment.model.ProjectFile;
+import gr.uom.Service.Based.Assesment.repository.ProjectFileRepository;
+import gr.uom.Service.Based.Assesment.repository.ProjectRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 
 
 import java.io.*;
@@ -20,8 +23,14 @@ import java.util.HashMap;
 @org.springframework.stereotype.Service
 public class Service {
 
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
+    private ProjectFileRepository projectFileRepository;
+
     private int i;
-    public void runCommand() throws IOException, InterruptedException, ExecutionException {
+    public Project runCommand() throws IOException, InterruptedException, ExecutionException {
         String homeDirectory = "C:\\Users\\geoap\\Documents\\SmoothStream";
         Path dir = Paths.get(homeDirectory);
         File folder = new File(homeDirectory);
@@ -29,6 +38,8 @@ public class Service {
         Project mainProject = new Project(homeDirectory);
         ArrayList<ProjectFile> fileList = new ArrayList<ProjectFile>();
         HashMap<String, Double> fileSimilarityLIst = new HashMap<String, Double>(listOfFiles.length);
+
+        storeNameOfProject(mainProject, homeDirectory);
 
         try (Stream<Path> stream = Files.walk(dir)){
             stream
@@ -72,7 +83,7 @@ public class Service {
         fourthThread.join();
         fifthTread.join();
 
-        System.out.println(mainProject);
+        return mainProject;
     }
     public void executeCommand(Project project, ArrayList<ProjectFile> fileList, String command, String destination) throws IOException, InterruptedException {
         ArrayList<String> similarityResponse = new ArrayList<>();
@@ -133,6 +144,13 @@ public class Service {
         };
     }
 
+    public List<Project> getAllProjects() {
+        return projectRepository.findAll();
+    }
+
+    public List<ProjectFile> getAllProjectFiles() {
+        return projectFileRepository.findAll();
+    }
 }
 
 

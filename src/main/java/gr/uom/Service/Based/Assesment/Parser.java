@@ -1,20 +1,22 @@
 package gr.uom.Service.Based.Assesment;
 
-import gr.uom.Service.Based.Assesment.dto.Project;
-import gr.uom.Service.Based.Assesment.dto.ProjectFile;
-import org.hibernate.engine.transaction.jta.platform.internal.SynchronizationRegistryBasedSynchronizationStrategy;
+import gr.uom.Service.Based.Assesment.model.Project;
+import gr.uom.Service.Based.Assesment.model.ProjectFile;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class Parser {
 
-
+    public static void storeNameOfProject(Project mainProject, String directory) {
+        String[] split = directory.split("\\\\");
+        mainProject.setName(split[split.length - 1]);
+    }
 
     public static long countLineBufferedReader(Project project, String fileName) {
         ArrayList<String> dependencies = new ArrayList<>();
@@ -30,7 +32,6 @@ public class Parser {
         return dependencies.size();
 
     }
-
 
     public static void storeDataInObjects(Project project,ArrayList<ProjectFile> fileList, String response, String command) {
 
@@ -110,7 +111,7 @@ public class Parser {
     public static void storeSimilarity(ArrayList<String> similarityResponse, ArrayList<ProjectFile> fileList, Project project){
         String mainFile = "";
         int position = 0;
-        HashMap<String, HashMap<String, Double>> similarityMap = new HashMap<>();
+        Map<String, HashMap<String, Double>> similarityMap = new HashMap<>();
 
         for(int i=0; i < similarityResponse.size(); i++) {
             if (similarityResponse.get(i).contains("Code duplication probability for")) {
@@ -157,7 +158,7 @@ public class Parser {
 
     public static void storeComments(ArrayList<String> commentsResponse, ArrayList<ProjectFile> fileList, Project project) {
         String mainFile = "";
-        ArrayList<String> comments = new ArrayList<>();
+        List<String> comments = new ArrayList<>();
         ProjectFile currentProjectFile = null;
 
         for (int i = 0; i < commentsResponse.size(); i++) {

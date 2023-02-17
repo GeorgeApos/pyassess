@@ -1,38 +1,75 @@
-package gr.uom.Service.Based.Assesment.dto;
+package gr.uom.Service.Based.Assesment.model;
+
+import jakarta.persistence.*;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
+@Entity
+@Table(name = "project_files")
 public class ProjectFile {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(name = "firstFile")
     File firstFile;
+    @Column(name = "name")
     String name;
+    @Column(name = "stmts")
     int stmts;
+    @Column(name = "miss")
     int miss;
+    @Column(name = "coverage")
     int coverage;
-    ArrayList<String> comments;
+    @ElementCollection
+    List<String> comments;
+    @Column(name = "rating")
     Double rating;
+    @Column(name = "previousRating")
     Double previousRating;
-    HashMap<String, Double> similarity;
+    @ElementCollection
+    Map<String, Double> similarity;
+    @ManyToOne
+    private Project project;
 
-    public ProjectFile(File firstFile, HashMap<String, Double> similarity){
+    public ProjectFile(File firstFile, Map<String, Double> similarity){
         this.firstFile = firstFile;
         this.similarity = similarity;
     }
 
+    public ProjectFile() {}
+
     @Override
     public String toString() {
         return "ProjectFile{" +
-                "firstFile=" + firstFile +
+                "id=" + id +
+                ", firstFile=" + firstFile +
                 ", name='" + name + '\'' +
                 ", stmts=" + stmts +
                 ", miss=" + miss +
                 ", coverage=" + coverage +
-                ", comments='" + comments + '\'' +
+                ", comments=" + comments +
                 ", rating=" + rating +
                 ", previousRating=" + previousRating +
                 ", similarity=" + similarity +
+                ", projectName=" + project +
                 '}';
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
     }
 
     public File getFirstFile() {
@@ -71,11 +108,11 @@ public class ProjectFile {
         this.coverage = coverage;
     }
 
-    public ArrayList<String> getComments() {
+    public List<String> getComments() {
         return comments;
     }
 
-    public void setComments(ArrayList<String> comments) { this.comments = comments; }
+    public void setComments(List<String> comments) { this.comments = comments; }
 
     public Double getRating() {
         return rating;
@@ -93,11 +130,11 @@ public class ProjectFile {
         this.previousRating = previousRating;
     }
 
-    public HashMap<String, Double> getSimilarity() {
+    public Map<String, Double> getSimilarity() {
         return similarity;
     }
 
-    public void setSimilarity(HashMap<String, Double> similarity) {
+    public void setSimilarity(Map<String, Double> similarity) {
         this.similarity = similarity;
     }
 }

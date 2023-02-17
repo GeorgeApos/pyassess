@@ -1,21 +1,41 @@
-package gr.uom.Service.Based.Assesment.dto;
+package gr.uom.Service.Based.Assesment.model;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import jakarta.persistence.*;
 
+import java.util.List;
+
+@Entity
+@Table(name = "projects")
 public class Project {
-    String directory;
-    ArrayList<String> dependencies;
-    long dependenciesCounter;
-    ArrayList<ProjectFile> files;
-    long totalCoverage;
-    long totalMiss;
-    long totalStmts;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(name = "name", unique = true)
+    private String name;
+    @Column(name = "directory")
+    private String directory;
+    @ElementCollection
+    @Column(name = "dependencies")
+    private List<String> dependencies;
+    @Column(name = "dependenciesCounter")
+    private long dependenciesCounter;
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProjectFile> files;
+    @Column(name = "totalCoverage")
+    private long totalCoverage;
+    @Column(name = "totalMiss")
+    private long totalMiss;
+    @Column(name = "totalStmts")
+    private long totalStmts;
+
+    public Project() {}
 
     @Override
     public String toString() {
         return "Project{" +
-                "directory='" + directory + '\'' +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", directory='" + directory + '\'' +
                 ", dependencies=" + dependencies +
                 ", dependenciesCounter=" + dependenciesCounter +
                 ", files=" + files +
@@ -23,6 +43,22 @@ public class Project {
                 ", totalMiss=" + totalMiss +
                 ", totalStmts=" + totalStmts +
                 '}';
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public long getTotalMiss() {
@@ -53,15 +89,15 @@ public class Project {
         this.directory = directory;
     }
 
-    public ArrayList<String> getDependencies() {
+    public List<String> getDependencies() {
         return dependencies;
     }
 
-    public void setDependencies(ArrayList<String> dependencies) {
+    public void setDependencies(List<String> dependencies) {
         this.dependencies = dependencies;
     }
 
-    public ArrayList<ProjectFile> getFiles() {
+    public List<ProjectFile> getFiles() {
         return files;
     }
 
@@ -73,7 +109,7 @@ public class Project {
         this.dependenciesCounter = dependenciesCounter;
     }
 
-    public void setFiles(ArrayList<ProjectFile> files) { this.files = files; }
+    public void setFiles(List<ProjectFile> files) { this.files = files; }
 
     public long getTotalCoverage() {
         return totalCoverage;
