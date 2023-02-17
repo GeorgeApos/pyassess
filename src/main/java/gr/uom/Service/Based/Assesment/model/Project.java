@@ -5,29 +5,30 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
+@Table(name = "projects")
 public class Project {
-
-    private static long counter;
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "name", unique = true)
     private String name;
+    @Column(name = "directory")
     private String directory;
     @ElementCollection
+    @Column(name = "dependencies")
     private List<String> dependencies;
+    @Column(name = "dependenciesCounter")
     private long dependenciesCounter;
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProjectFile> files;
+    @Column(name = "totalCoverage")
     private long totalCoverage;
+    @Column(name = "totalMiss")
     private long totalMiss;
+    @Column(name = "totalStmts")
     private long totalStmts;
 
-
-
-    public Project() {
-        this.id = counter++;
-    }
+    public Project() {}
 
     @Override
     public String toString() {

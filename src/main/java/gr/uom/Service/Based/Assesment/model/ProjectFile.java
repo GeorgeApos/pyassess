@@ -6,18 +6,26 @@ import java.io.File;
 import java.util.*;
 
 @Entity
+@Table(name = "project_files")
 public class ProjectFile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "firstFile")
     File firstFile;
+    @Column(name = "name")
     String name;
+    @Column(name = "stmts")
     int stmts;
+    @Column(name = "miss")
     int miss;
+    @Column(name = "coverage")
     int coverage;
     @ElementCollection
     List<String> comments;
+    @Column(name = "rating")
     Double rating;
+    @Column(name = "previousRating")
     Double previousRating;
     @ElementCollection
     Map<String, Double> similarity;
@@ -29,9 +37,7 @@ public class ProjectFile {
         this.similarity = similarity;
     }
 
-    public ProjectFile() {
-
-    }
+    public ProjectFile() {}
 
     @Override
     public String toString() {
