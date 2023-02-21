@@ -2,18 +2,23 @@ version: "3.9"
 
 services:
   app:
+    image: 'service_based_assessment_image:latest'
     build:
       context: .
-      dockerfile: Dockerfile
+    container_name: app
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgres://postgres:password@db:5432/service_based_assessment_db
-    ports:
-      - "8080:8080"
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/service_based_assessment_db
+      - SPRING_DATASOURCE_USERNAME=service_based_assessment_user
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
   db:
     image: postgres
+    container_name: db
     environment:
       POSTGRES_USER: service_based_assessment_user
       POSTGRES_PASSWORD: 123456
       POSTGRES_DB: service_based_assessment_db
+    ports:
+      - '5435:5432'
