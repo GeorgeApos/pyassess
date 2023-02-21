@@ -7,13 +7,11 @@ RUN apt-get update && \
     pip3 install --user nltk gensim && \
     python3 -m nltk.downloader punkt && \
     pip3 install pipreqs && \
-    mkdir -p /home/Documents && \
-    cd /home/Documents && \
     git clone https://github.com/platisd/duplicate-code-detection-tool.git && \
     git clone https://github.com/CT83/SmoothStream.git && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR app
+WORKDIR /app
 
 ARG JAR_FILE=target/*.jar
 COPY ${JAR_FILE} app.jar

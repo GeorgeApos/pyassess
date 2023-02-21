@@ -31,7 +31,7 @@ public class Service {
 
     private int i;
     public Project runCommand() throws IOException, InterruptedException, ExecutionException {
-        String homeDirectory = "C:\\Users\\geoap\\Documents\\SmoothStream";
+        String homeDirectory = System.getProperty("user.dir")+ File.separator + "SmoothStream";
         Path dir = Paths.get(homeDirectory);
         File folder = new File(homeDirectory);
         File[] listOfFiles = folder.listFiles();
@@ -93,7 +93,7 @@ public class Service {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
             List<String> lines = reader.lines().collect(Collectors.toList());
             for (String line : lines) {
-                if(command.startsWith("python3 -W ignore /home/Documents/duplicate-code-detection-tool/duplicate_code_detection.py -d  ")){
+                if(command.startsWith("python3 -W ignore " + System.getProperty("user.dir")+ File.separator + "duplicate-code-detection-tool/duplicate_code_detection.py -d  ")){
                     if(line.contains("Code duplication probability for") || line.startsWith(project.getDirectory())){
                         similarityResponse.add(line);
                     }
@@ -133,7 +133,7 @@ public class Service {
         return () -> {
             try {
                 executeCommand(mainProject, fileList, "pytest --cov=", homeDirectory);
-                executeCommand(mainProject, fileList, "python3 -W ignore /home/Documents/duplicate-code-detection-tool/duplicate_code_detection.py -d  ", homeDirectory);
+                executeCommand(mainProject, fileList, "python3 -W ignore " + System.getProperty("user.dir")+ File.separator + "duplicate-code-detection-tool/duplicate_code_detection.py -d  ", homeDirectory);
                 executeCommand(mainProject, fileList, "pipreqs --force", homeDirectory);
             } catch (IOException e) {
                 throw new RuntimeException(e);
