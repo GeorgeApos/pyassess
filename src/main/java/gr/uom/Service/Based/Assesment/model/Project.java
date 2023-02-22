@@ -7,9 +7,14 @@ import java.util.List;
 @Entity
 @Table(name = "projects")
 public class Project {
-    @Id
+    private static int counter = 1;
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
+    @Id
+    @Column(name = "gitUrl")
+    private String gitUrl;
+    @Column(name = "owner")
+    private String owner;
     @Column(name = "name", unique = true)
     private String name;
     @Column(name = "directory")
@@ -28,12 +33,16 @@ public class Project {
     @Column(name = "totalStmts")
     private long totalStmts;
 
-    public Project() {}
+    public Project() {
+        this.id = counter++;
+    }
 
     @Override
     public String toString() {
         return "Project{" +
                 "id=" + id +
+                ", gitUrl='" + gitUrl + '\'' +
+                ", owner='" + owner + '\'' +
                 ", name='" + name + '\'' +
                 ", directory='" + directory + '\'' +
                 ", dependencies=" + dependencies +
@@ -45,11 +54,27 @@ public class Project {
                 '}';
     }
 
-    public Long getId() {
+    public String getGitUrl() {
+        return gitUrl;
+    }
+
+    public void setGitUrl(String gitUrl) {
+        this.gitUrl = gitUrl;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    public int getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
