@@ -52,6 +52,7 @@ public class Service {
                         newFile.setName(file.toFile().getName());
                         fileList.add(newFile);
                         mainProject.setFiles(fileList);
+                        newFile.setProjectName(mainProject.getName());
                     });
         }
 
@@ -100,7 +101,7 @@ public class Service {
                         similarityResponse.add(line);
                     }
                 }else if(command.startsWith("pylint")){
-                    if(line.contains("Your code has been rated at") || line.startsWith("************* Module ") || line.startsWith(project.getDirectory())) {
+                    if(line.contains("Your code has been rated at") || line.startsWith("************* Module ") || line.startsWith(project.getName())) {
                         commentsResponse.add(line);
                     }
                 }

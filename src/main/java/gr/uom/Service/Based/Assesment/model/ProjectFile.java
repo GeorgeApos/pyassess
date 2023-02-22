@@ -32,6 +32,8 @@ public class ProjectFile {
     Map<String, Double> similarity;
     @ManyToOne
     private Project project;
+    @Column(name = "projectName")
+    private String projectName;
 
     public ProjectFile(File firstFile, Map<String, Double> similarity){
         this.firstFile = firstFile;
@@ -54,8 +56,16 @@ public class ProjectFile {
                 ", rating=" + rating +
                 ", previousRating=" + previousRating +
                 ", similarity=" + similarity +
-                ", projectName=" + project +
+                ", projectName=" + projectName +
                 '}';
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
     }
 
     public int getId() {
@@ -66,12 +76,12 @@ public class ProjectFile {
         this.id = id;
     }
 
-    public Project getProject() {
-        return project;
+    public String getProjectName() {
+        return projectName;
     }
 
-    public void setProject(Project project) {
-        this.project = project;
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
     public File getFirstFile() {
