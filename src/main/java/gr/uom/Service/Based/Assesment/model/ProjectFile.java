@@ -9,8 +9,6 @@ import java.util.*;
 @Table(name = "project_files")
 public class ProjectFile {
 
-    private static int counter = 1;
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -41,7 +39,6 @@ public class ProjectFile {
     }
 
     public ProjectFile() {
-        this.id = counter++;
     }
 
     @Override

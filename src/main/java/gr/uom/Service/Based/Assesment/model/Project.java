@@ -7,11 +7,10 @@ import java.util.List;
 @Entity
 @Table(name = "projects")
 public class Project {
-    private static int counter = 1;
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @Id
-    @Column(name = "gitUrl")
+    @Column(name = "gitUrl", unique = true)
     private String gitUrl;
     @Column(name = "owner")
     private String owner;
@@ -34,7 +33,6 @@ public class Project {
     private long totalStmts;
 
     public Project() {
-        this.id = counter++;
     }
 
     @Override

@@ -134,7 +134,9 @@ public class Service {
             try {
                 executeCommand(mainProject, fileList, "pytest --cov=", homeDirectory);
                 executeCommand(mainProject, fileList, "python3 -W ignore " + System.getProperty("user.dir")+ File.separator + "duplicate-code-detection-tool/duplicate_code_detection.py -d  ", homeDirectory);
-                executeCommand(mainProject, fileList, "pipreqs --force", homeDirectory);
+                do{
+                    executeCommand(mainProject, fileList, "pipreqs --force ", homeDirectory);
+                }while (!(new File(homeDirectory + "/requirements.txt")).exists());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             } catch (InterruptedException e) {
