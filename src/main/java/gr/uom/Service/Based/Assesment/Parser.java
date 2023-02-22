@@ -173,7 +173,7 @@ public class Parser {
                     mainFile = fileMatcher.group(1);
                     currentProjectFile = findProjectFile(mainFile, fileList);
                 }
-            } else if (currentLine.startsWith(project.getDirectory())) {
+            } else if (currentLine.startsWith(project.getName())) {
                 comments.add(currentLine.replace("'", "\\'"));
             } else if (currentLine.contains("Your code has been rated at")) {
                 if (currentProjectFile != null) {
