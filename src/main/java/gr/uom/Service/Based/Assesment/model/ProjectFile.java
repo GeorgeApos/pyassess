@@ -8,9 +8,12 @@ import java.util.*;
 @Entity
 @Table(name = "project_files")
 public class ProjectFile {
+
+    private static int counter = 1;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
     @Column(name = "firstFile")
     File firstFile;
     @Column(name = "name")
@@ -37,7 +40,9 @@ public class ProjectFile {
         this.similarity = similarity;
     }
 
-    public ProjectFile() {}
+    public ProjectFile() {
+        this.id = counter++;
+    }
 
     @Override
     public String toString() {
@@ -56,11 +61,11 @@ public class ProjectFile {
                 '}';
     }
 
-    public Long getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
