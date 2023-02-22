@@ -39,7 +39,9 @@ public class Service {
         ArrayList<ProjectFile> fileList = new ArrayList<ProjectFile>();
         HashMap<String, Double> fileSimilarityLIst = new HashMap<String, Double>(listOfFiles.length);
 
-        storeNameOfProject(mainProject, homeDirectory);
+        String gitUrl = "https://github.com/CT83/SmoothStream";
+
+        storeUrlOwnerAndName(gitUrl, mainProject);
 
         try (Stream<Path> stream = Files.walk(dir)){
             stream

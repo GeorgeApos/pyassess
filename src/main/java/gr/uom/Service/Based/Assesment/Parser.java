@@ -13,11 +13,12 @@ import java.util.regex.Pattern;
 
 public class Parser {
 
-    public static void storeNameOfProject(Project mainProject, String directory) {
-        String[] split = directory.split("\\\\");
-        mainProject.setName(split[split.length - 1]);
+    public static void storeUrlOwnerAndName(String gitUrl, Project mainProject) {
+        String[] url = gitUrl.split("/");
+        mainProject.setGitUrl(gitUrl);
+        mainProject.setName(url[4].split("\\.")[0]);
+        mainProject.setOwner(url[3]);
     }
-
     public static long countLineBufferedReader(Project project, String fileName) {
         ArrayList<String> dependencies = new ArrayList<>();
         String line;
