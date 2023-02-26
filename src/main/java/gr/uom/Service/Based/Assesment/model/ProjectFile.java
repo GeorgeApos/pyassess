@@ -29,6 +29,7 @@ public class ProjectFile {
     @Column(name = "previousRating")
     Double previousRating;
     @ElementCollection
+    @Column(name = "similarity", length = 100000)
     Map<String, Double> similarity;
     @ManyToOne
     private Project project;

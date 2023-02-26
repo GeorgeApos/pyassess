@@ -7,13 +7,11 @@ import gr.uom.Service.Based.Assesment.repository.ProjectRepository;
 import gr.uom.Service.Based.Assesment.service.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 @RestController
@@ -30,12 +28,22 @@ public class Controller {
     private ProjectFileRepository projectFileRepository;
 
     @PostMapping("/")
-    public ResponseEntity<Project> handleSimpleRequest() throws IOException, ExecutionException, InterruptedException {
-        Project savedProject = projectRepository.save(appService.runCommand());
+    public ResponseEntity<Project> handleSimpleRequest(@RequestParam("gitUrl") String gitUrl) throws Exception {
+        Project savedProject = projectRepository.save(appService.runCommand(gitUrl));
         return ResponseEntity.ok(savedProject);
     }
 
     @GetMapping("/")
+    public ResponseEntity<Project> getProjectByGitUrl(@RequestParam("gitUrl") String gitUrl) {
+        Optional<Project> project = projectRepository.findByGitUrl(gitUrl);
+        if (project.isPresent()) {
+            return ResponseEntity.ok(project.get());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/all")
     public List<Project> getAllProjects() {
         return appService.getAllProjects();
     }
