@@ -145,18 +145,6 @@ public class Service {
         Map<String, Object> json = response.getBody()[0];
         String sha = (String) json.get("sha");
 
-        String cloneUrl = "https://github.com/" + owner + "/" + repoName + ".git";
-        String cloneDirWithSha = cloneDir + "-" + sha;
-
-        Git.cloneRepository()
-                .setCredentialsProvider(new UsernamePasswordCredentialsProvider(githubToken, ""))
-                .setURI(cloneUrl)
-                .setDirectory(new File(cloneDirWithSha))
-                .setBranchesToClone(Collections.singletonList("refs/heads/master"))
-                .setBranch("refs/heads/master")
-                .setProgressMonitor(new TextProgressMonitor(new PrintWriter(System.out)))
-                .call();
-
         return sha;
     }
 
