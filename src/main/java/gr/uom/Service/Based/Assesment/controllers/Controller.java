@@ -33,6 +33,13 @@ public class Controller {
         return ResponseEntity.ok(savedProject);
     }
 
+    @DeleteMapping("/")
+    public ResponseEntity<String> handleDeleteRequest(@RequestParam("projectId") Long projectId) {
+        projectRepository.deleteById(projectId);
+        return ResponseEntity.ok("Project with ID " + projectId + " has been deleted");
+    }
+
+
     @GetMapping("/")
     public ResponseEntity<Project> getProjectByGitUrl(@RequestParam("gitUrl") String gitUrl) {
         Optional<Project> project = projectRepository.findByGitUrl(gitUrl);
