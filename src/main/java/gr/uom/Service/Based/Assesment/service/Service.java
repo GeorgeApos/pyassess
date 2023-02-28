@@ -6,6 +6,7 @@ import gr.uom.Service.Based.Assesment.repository.ProjectFileRepository;
 import gr.uom.Service.Based.Assesment.repository.ProjectRepository;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -35,6 +36,11 @@ public class Service {
     private String githubToken;
 
     public void cloneRepository(String owner, String repoName, String cloneDir) throws Exception {
+
+        if (cloneDir.contains(repoName) && new File(cloneDir).exists()) {
+            FileUtils.cleanDirectory(new File(cloneDir));
+            FileUtils.forceDelete(new File(cloneDir));
+        }
 
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getInterceptors().add((request, body, execution) -> {
