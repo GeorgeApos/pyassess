@@ -12,6 +12,8 @@ public class Project {
     private int id;
     @Column(name = "gitUrl", unique = true)
     private String gitUrl;
+    @Column(name = "SHA")
+    private String SHA;
     @Column(name = "owner")
     private String owner;
     @Column(name = "name", unique = true)
@@ -23,7 +25,7 @@ public class Project {
     private List<String> dependencies;
     @Column(name = "dependenciesCounter")
     private long dependenciesCounter;
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     private List<ProjectFile> files;
     @Column(name = "totalCoverage")
     private long totalCoverage;
@@ -40,6 +42,7 @@ public class Project {
         return "Project{" +
                 "id=" + id +
                 ", gitUrl='" + gitUrl + '\'' +
+                ", SHA='" + SHA + '\'' +
                 ", owner='" + owner + '\'' +
                 ", name='" + name + '\'' +
                 ", directory='" + directory + '\'' +
@@ -50,6 +53,14 @@ public class Project {
                 ", totalMiss=" + totalMiss +
                 ", totalStmts=" + totalStmts +
                 '}';
+    }
+
+    public String getSHA() {
+        return SHA;
+    }
+
+    public void setSHA(String SHA) {
+        this.SHA = SHA;
     }
 
     public String getGitUrl() {
