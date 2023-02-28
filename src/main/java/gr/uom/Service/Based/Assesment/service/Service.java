@@ -1,23 +1,26 @@
 package gr.uom.Service.Based.Assesment.service;
 
-import static gr.uom.Service.Based.Assesment.Parser.*;
 import gr.uom.Service.Based.Assesment.model.Project;
 import gr.uom.Service.Based.Assesment.model.ProjectFile;
 import gr.uom.Service.Based.Assesment.repository.ProjectFileRepository;
 import gr.uom.Service.Based.Assesment.repository.ProjectRepository;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.HashMap;
+
+import static gr.uom.Service.Based.Assesment.Parser.*;
 
 
 @org.springframework.stereotype.Service
@@ -29,20 +32,54 @@ public class Service {
     @Autowired
     private ProjectFileRepository projectFileRepository;
 
-    private int i;
-    public Project runCommand() throws IOException, InterruptedException, ExecutionException {
-        String homeDirectory = System.getProperty("user.dir")+ File.separator + "SmoothStream";
-        Path dir = Paths.get(homeDirectory);
-        File folder = new File(homeDirectory);
-        File[] listOfFiles = folder.listFiles();
-        Project mainProject = new Project(homeDirectory);
-        ArrayList<ProjectFile> fileList = new ArrayList<ProjectFile>();
-        HashMap<String, Double> fileSimilarityLIst = new HashMap<String, Double>(listOfFiles.length);
+    @Value("${github.token}")
+    private String githubToken;
 
-        String gitUrl = "https://github.com/CT83/SmoothStream";
+    public void cloneRepository(String owner, String repoName, String cloneDir) throws Exception {
+
+        if (cloneDir.contains(repoName) && new File(cloneDir).exists()) {
+            FileUtils.cleanDirectory(new File(cloneDir));
+            FileUtils.forceDelete(new File(cloneDir));
+        }
+
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getInterceptors().add((request, body, execution) -> {
+            request.getHeaders().add("Authorization", "Bearer " + githubToken);
+            return execution.execute(request, body);
+        });
+
+        String apiUrl = "https://api.github.com/repos/" + owner + "/" + repoName;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<Map> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, Map.class);
+        Map<String, Object> json = response.getBody();
+        String cloneUrl = (String) json.get("clone_url");
+
+        Git.cloneRepository()
+                .setCredentialsProvider(new UsernamePasswordCredentialsProvider(githubToken, ""))
+                .setURI(cloneUrl)
+                .setDirectory(new File(cloneDir))
+                .call();
+    }
+
+    private int i;
+    public Project runCommand(String gitUrl) throws Exception {
+        Project mainProject = new Project();
 
         storeUrlOwnerAndName(gitUrl, mainProject);
 
+        String homeDirectory = System.getProperty("user.dir") + File.separator + mainProject.getName();
+
+        mainProject.setDirectory(homeDirectory);
+
+        cloneRepository(mainProject.getOwner(), mainProject.getName(), homeDirectory);
+
+        Path dir = Paths.get(homeDirectory);
+        File folder = new File(homeDirectory);
+        File[] listOfFiles = folder.listFiles();
+        ArrayList<ProjectFile> fileList = new ArrayList<ProjectFile>();
+        HashMap<String, Double> fileSimilarityLIst = new HashMap<String, Double>(listOfFiles.length);
         try (Stream<Path> stream = Files.walk(dir)){
             stream
                     .filter(Files::isRegularFile)
@@ -86,6 +123,7 @@ public class Service {
         fourthThread.join();
         fifthTread.join();
 
+        Git.open(new File(homeDirectory)).close();
         return mainProject;
     }
     public void executeCommand(Project project, ArrayList<ProjectFile> fileList, String command, String destination) throws IOException, InterruptedException {
@@ -104,9 +142,12 @@ public class Service {
                     if(line.contains("Your code has been rated at") || line.startsWith("************* Module ") || line.startsWith(project.getName())) {
                         commentsResponse.add(line);
                     }
+                }else if(command.startsWith("pytest")){
+                    if(line.contains(project.getDirectory()) || line.startsWith("TOTAL")){
+                        storeDataInObjects(project, fileList, line, command);
+                    }
                 }
                 System.out.println(line);
-                storeDataInObjects(project, fileList, line, command);
             }
             if (similarityResponse.size()>0){
                 storeSimilarity(similarityResponse, fileList, project);

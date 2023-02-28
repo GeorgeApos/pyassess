@@ -22,8 +22,8 @@ public class ProjectFile {
     int miss;
     @Column(name = "coverage")
     int coverage;
-    @ElementCollection
-    List<String> comments;
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<Comment> comments;
     @Column(name = "rating")
     Double rating;
     @Column(name = "previousRating")
@@ -120,11 +120,11 @@ public class ProjectFile {
         this.coverage = coverage;
     }
 
-    public List<String> getComments() {
+    public List<Comment> getComments() {
         return comments;
     }
 
-    public void setComments(List<String> comments) { this.comments = comments; }
+    public void setComments(List<Comment> comments) { this.comments = comments; }
 
     public Double getRating() {
         return rating;

@@ -1,5 +1,6 @@
 package gr.uom.Service.Based.Assesment;
 
+import gr.uom.Service.Based.Assesment.model.Comment;
 import gr.uom.Service.Based.Assesment.model.Project;
 import gr.uom.Service.Based.Assesment.model.ProjectFile;
 
@@ -10,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.apache.sshd.common.util.GenericUtils.length;
 
 public class Parser {
 
@@ -159,7 +162,7 @@ public class Parser {
 
     public static void storeComments(ArrayList<String> commentsResponse, ArrayList<ProjectFile> fileList, Project project) {
         String mainFile = "";
-        List<String> comments = new ArrayList<>();
+        List<Comment> comments = new ArrayList<>();
         ProjectFile currentProjectFile = null;
 
         for (int i = 0; i < commentsResponse.size(); i++) {
@@ -174,7 +177,7 @@ public class Parser {
                     currentProjectFile = findProjectFile(mainFile, fileList);
                 }
             } else if (currentLine.startsWith(project.getName())) {
-                comments.add(currentLine.replace("'", "\\'"));
+                comments.add(new Comment(currentLine.replace("'", "\\'")));
             } else if (currentLine.contains("Your code has been rated at")) {
                 if (currentProjectFile != null) {
                     currentProjectFile.setComments(comments);
