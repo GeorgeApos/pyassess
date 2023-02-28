@@ -5,6 +5,7 @@ import gr.uom.Service.Based.Assesment.model.ProjectFile;
 import gr.uom.Service.Based.Assesment.repository.ProjectFileRepository;
 import gr.uom.Service.Based.Assesment.repository.ProjectRepository;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,10 +72,12 @@ public class Service {
 
         String homeDirectory = System.getProperty("user.dir") + File.separator + mainProject.getName();
 
+        mainProject.setSHA(findSHA(homeDirectory, mainProject.getOwner(), mainProject.getName()));
+
         mainProject.setDirectory(homeDirectory);
 
         cloneRepository(mainProject.getOwner(), mainProject.getName(), homeDirectory);
-
+        
         Path dir = Paths.get(homeDirectory);
         File folder = new File(homeDirectory);
         File[] listOfFiles = folder.listFiles();
@@ -126,6 +129,25 @@ public class Service {
         Git.open(new File(homeDirectory)).close();
         return mainProject;
     }
+
+    private String findSHA(String cloneDir, String owner, String repoName) throws Exception {
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getInterceptors().add((request, body, execution) -> {
+            request.getHeaders().add("Authorization", "Bearer " + githubToken);
+            return execution.execute(request, body);
+        });
+
+        String apiUrl = "https://api.github.com/repos/" + owner + "/" + repoName + "/commits";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<Map[]> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, Map[].class);
+        Map<String, Object> json = response.getBody()[0];
+        String sha = (String) json.get("sha");
+
+        return sha;
+    }
+
     public void executeCommand(Project project, ArrayList<ProjectFile> fileList, String command, String destination) throws IOException, InterruptedException {
         ArrayList<String> similarityResponse = new ArrayList<>();
         ArrayList<String> commentsResponse = new ArrayList<>();
