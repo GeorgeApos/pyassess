@@ -74,6 +74,14 @@ public class Service {
 
         mainProject.setSHA(findSHA(homeDirectory, mainProject.getOwner(), mainProject.getName()));
 
+        if (projectRepository.existsProjectBySHA(mainProject.getSHA())) {
+            if (mainProject.getSHA().equals(projectRepository.findProjectBySHA(mainProject.getSHA()).getSHA())){
+                throw new Exception("This commit has already been analyzed");
+            } else if (projectRepository.existsProjectBySHA(mainProject.getSHA())) {
+                projectRepository.removeProjectBySHA(mainProject.getSHA());
+            }
+        }
+        
         mainProject.setDirectory(homeDirectory);
 
         cloneRepository(mainProject.getOwner(), mainProject.getName(), homeDirectory);
