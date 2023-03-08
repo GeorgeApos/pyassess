@@ -27,12 +27,14 @@ public class Controller {
     @Autowired
     private ProjectFileRepository projectFileRepository;
 
+    @CrossOrigin(origins = "*")
     @PostMapping("/")
     public ResponseEntity<Project> handleSimpleRequest(@RequestParam("gitUrl") String gitUrl) throws Exception {
         Project savedProject = projectRepository.save(appService.runCommand(gitUrl));
         return ResponseEntity.ok(savedProject);
     }
 
+    @CrossOrigin(origins = "*")
     @DeleteMapping("/")
     public ResponseEntity<String> handleDeleteRequest(@RequestParam("projectId") Long projectId) {
         projectRepository.deleteById(projectId);
@@ -40,6 +42,7 @@ public class Controller {
     }
 
 
+    @CrossOrigin(origins = "*")
     @GetMapping("/")
     public ResponseEntity<Project> getProjectByGitUrl(@RequestParam("gitUrl") String gitUrl) {
         Optional<Project> project = projectRepository.findByGitUrl(gitUrl);
@@ -50,11 +53,13 @@ public class Controller {
         }
     }
 
+    @CrossOrigin(origins = "*")
     @GetMapping("/all")
     public List<Project> getAllProjects() {
         return appService.getAllProjects();
     }
 
+    @CrossOrigin(origins = "*")
     @GetMapping("/files")
     public List<ProjectFile> getAllProjectFiles() {
         return appService.getAllProjectFiles();
