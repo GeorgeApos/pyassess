@@ -8,7 +8,6 @@ RUN apt-get update && \
     python3 -m nltk.downloader punkt && \
     pip3 install pipreqs && \
     git clone https://github.com/platisd/duplicate-code-detection-tool.git && \
-    git clone https://github.com/CT83/SmoothStream.git && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
