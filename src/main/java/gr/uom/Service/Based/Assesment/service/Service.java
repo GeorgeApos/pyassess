@@ -128,7 +128,8 @@ public class Service {
         fourthThread.join();
         fifthTread.join();
 
-        FileSystemUtils.deleteRecursively(new File(homeDirectory));
+        FileUtils.cleanDirectory(new File(homeDirectory));
+        FileSystemUtils.deleteRecursively(Path.of(homeDirectory));
         return mainProject;
     }
 
