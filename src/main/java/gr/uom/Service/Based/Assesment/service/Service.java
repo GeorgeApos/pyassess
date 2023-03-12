@@ -173,7 +173,7 @@ public class Service {
                         commentsResponse.add(line);
                     }
                 }else if(command.startsWith("pytest")){
-                    if(line.contains(project.getDirectory()) || line.startsWith("TOTAL")){
+                    if(line.contains(project.getName()) || line.startsWith("TOTAL")){
                         storeDataInObjects(project, fileList, line, command);
                     }
                 }
