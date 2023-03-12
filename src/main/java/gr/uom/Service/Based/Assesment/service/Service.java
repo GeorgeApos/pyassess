@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
+import org.apache.commons.io.FileUtils;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,77 +27,81 @@ import static gr.uom.Service.Based.Assesment.Parser.*;
 @org.springframework.stereotype.Service
 public class Service {
 
-    @Autowired
-    private ProjectRepository projectRepository;
+                            @Autowired
+                            private ProjectRepository projectRepository;
 
-    @Autowired
-    private ProjectFileRepository projectFileRepository;
+                            @Autowired
+                            private ProjectFileRepository projectFileRepository;
 
-    @Value("${github.token}")
-    private String githubToken;
+                            @Value("${github.token}")
+                            private String githubToken;
 
-    public void cloneRepository(String owner, String repoName, String cloneDir) throws Exception {
+                            public void cloneRepository(String owner, String repoName, String cloneDir) throws Exception {
 
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.getInterceptors().add((request, body, execution) -> {
-            request.getHeaders().add("Authorization", "Bearer " + githubToken);
-            return execution.execute(request, body);
-        });
+                                RestTemplate restTemplate = new RestTemplate();
+                                restTemplate.getInterceptors().add((request, body, execution) -> {
+                                    request.getHeaders().add("Authorization", "Bearer " + githubToken);
+                                    return execution.execute(request, body);
+                                });
 
-        String apiUrl = "https://api.github.com/repos/" + owner + "/" + repoName;
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<Map> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, Map.class);
-        Map<String, Object> json = response.getBody();
-        String cloneUrl = (String) json.get("clone_url");
+                                String apiUrl = "https://api.github.com/repos/" + owner + "/" + repoName;
+                                HttpHeaders headers = new HttpHeaders();
+                                headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+                                HttpEntity<String> entity = new HttpEntity<>(headers);
+                                ResponseEntity<Map> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, Map.class);
+                                Map<String, Object> json = response.getBody();
+                                String cloneUrl = (String) json.get("clone_url");
 
-        Git.cloneRepository()
-                .setCredentialsProvider(new UsernamePasswordCredentialsProvider(githubToken, ""))
-                .setURI(cloneUrl)
-                .setDirectory(new File(cloneDir))
-                .call();
-    }
+                                Git clone = Git.cloneRepository()
+                                        .setCredentialsProvider(new UsernamePasswordCredentialsProvider(githubToken, ""))
+                                        .setURI(cloneUrl)
+                                        .setDirectory(new File(cloneDir))
+                                        .call();
 
-    private int i;
-    public Project runCommand(String gitUrl) throws Exception {
-        Project mainProject = new Project();
+                                clone.close();
+                            }
 
-        storeUrlOwnerAndName(gitUrl, mainProject);
+                            private int i;
+                            public Project runCommand(String gitUrl) throws Exception {
+                                Project mainProject = new Project();
 
-        String homeDirectory = System.getProperty("user.dir") + File.separator + mainProject.getName();
+                                storeUrlOwnerAndName(gitUrl, mainProject);
 
-        mainProject.setSHA(findSHA(homeDirectory, mainProject.getOwner(), mainProject.getName()));
+                                String homeDirectory = System.getProperty("user.dir") + File.separator + mainProject.getName();
 
-        if (projectRepository.existsProjectBySHA(mainProject.getSHA())) {
-            if (mainProject.getSHA().equals(projectRepository.findProjectBySHA(mainProject.getSHA()).getSHA())){
-                throw new Exception("This commit has already been analyzed");
-            } else if (projectRepository.existsProjectBySHA(mainProject.getSHA())) {
-                projectRepository.removeProjectBySHA(mainProject.getSHA());
-            }
-        }
-        
-        mainProject.setDirectory(homeDirectory);
+                                mainProject.setSHA(findSHA(mainProject.getOwner(), mainProject.getName()));
 
-        cloneRepository(mainProject.getOwner(), mainProject.getName(), homeDirectory);
-        
-        Path dir = Paths.get(homeDirectory);
-        File folder = new File(homeDirectory);
-        File[] listOfFiles = folder.listFiles();
-        ArrayList<ProjectFile> fileList = new ArrayList<ProjectFile>();
-        HashMap<String, Double> fileSimilarityLIst = new HashMap<String, Double>(listOfFiles.length);
-        try (Stream<Path> stream = Files.walk(dir)){
-            stream
-                    .filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".py"))
-                    .forEach(file -> {
-                        ProjectFile newFile = new ProjectFile(file.toFile(), fileSimilarityLIst);
-                        newFile.setName(file.toFile().getName());
+                                if (projectRepository.existsProjectBySHA(mainProject.getSHA())) {
+                                    if (mainProject.getSHA().equals(projectRepository.findProjectBySHA(mainProject.getSHA()).getSHA())){
+                                        throw new Exception("This commit has already been analyzed");
+                                    } else if (projectRepository.existsProjectBySHA(mainProject.getSHA())) {
+                                        projectRepository.removeProjectBySHA(mainProject.getSHA());
+                                    }
+                                }
+
+                                mainProject.setDirectory(homeDirectory);
+
+                                cloneRepository(mainProject.getOwner(), mainProject.getName(), homeDirectory);
+
+                                Path dir = Paths.get(homeDirectory);
+                                File folder = new File(homeDirectory);
+                                File[] listOfFiles = folder.listFiles();
+                                ArrayList<ProjectFile> fileList = new ArrayList<ProjectFile>();
+                                HashMap<String, Double> fileSimilarityLIst = new HashMap<String, Double>(listOfFiles.length);
+                                try (Stream<Path> stream = Files.walk(dir)){
+                                    stream
+                                            .filter(Files::isRegularFile)
+                                            .filter(path -> path.toString().endsWith(".py"))
+                                            .forEach(file -> {
+                                                ProjectFile newFile = new ProjectFile(file.toFile(), fileSimilarityLIst);
+                                                newFile.setName(file.toFile().getName());
                         fileList.add(newFile);
-                        mainProject.setFiles(fileList);
                         newFile.setProjectName(mainProject.getName());
+                        mainProject.getFiles().add(newFile);
                     });
         }
+
+        mainProject.setFiles(fileList);
 
         int fileListSize = fileList.size()/4;
         List<ArrayList<ProjectFile>> chunkedLists = new ArrayList<>();
@@ -133,7 +138,7 @@ public class Service {
         return mainProject;
     }
 
-    private String findSHA(String cloneDir, String owner, String repoName) throws Exception {
+    private String findSHA(String owner, String repoName) throws Exception {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getInterceptors().add((request, body, execution) -> {
             request.getHeaders().add("Authorization", "Bearer " + githubToken);
@@ -168,7 +173,7 @@ public class Service {
                         commentsResponse.add(line);
                     }
                 }else if(command.startsWith("pytest")){
-                    if(line.contains(project.getDirectory()) || line.startsWith("TOTAL")){
+                    if(line.contains(project.getName()) || line.startsWith("TOTAL")){
                         storeDataInObjects(project, fileList, line, command);
                     }
                 }
@@ -221,6 +226,22 @@ public class Service {
 
     public List<ProjectFile> getAllProjectFiles() {
         return projectFileRepository.findAll();
+    }
+
+    public Optional<Project> getProjectByGitUrl(String gitUrl) {
+        return projectRepository.findProjectByGitUrl(gitUrl);
+    }
+
+    public void deleteProject(Long projectId) {
+        projectRepository.deleteById(projectId);
+    }
+
+    public void saveProject(Project savedProject) {
+        projectRepository.save(savedProject);
+    }
+
+    public List<ProjectFile> getProjectFilesByName(String projectName) {
+        return projectFileRepository.findProjectFilesByProjectName(projectName);
     }
 }
 

@@ -40,7 +40,7 @@ public class Parser {
     public static void storeDataInObjects(Project project,ArrayList<ProjectFile> fileList, String response, String command) {
 
         if(command.startsWith("pytest --cov=")) {
-            if(response.startsWith(project.getDirectory())){
+            if(response.startsWith(project.getName())){
                 Pattern filePattern = Pattern.compile(regexPattern(command,"file"));
                 Matcher fileMatcher = filePattern.matcher(response);
                 Boolean fileFind = fileMatcher.find();

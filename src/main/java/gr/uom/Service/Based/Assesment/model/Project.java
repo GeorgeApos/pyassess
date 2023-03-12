@@ -2,6 +2,7 @@ package gr.uom.Service.Based.Assesment.model;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -26,7 +27,7 @@ public class Project {
     @Column(name = "dependenciesCounter")
     private long dependenciesCounter;
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    private List<ProjectFile> files;
+    private List<ProjectFile> files = new ArrayList<>();
     @Column(name = "totalCoverage")
     private long totalCoverage;
     @Column(name = "totalMiss")
@@ -55,12 +56,13 @@ public class Project {
                 '}';
     }
 
-    public String getSHA() {
-        return SHA;
+
+    public int getId() {
+        return id;
     }
 
-    public void setSHA(String SHA) {
-        this.SHA = SHA;
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getGitUrl() {
@@ -71,6 +73,14 @@ public class Project {
         this.gitUrl = gitUrl;
     }
 
+    public String getSHA() {
+        return SHA;
+    }
+
+    public void setSHA(String SHA) {
+        this.SHA = SHA;
+    }
+
     public String getOwner() {
         return owner;
     }
@@ -79,40 +89,12 @@ public class Project {
         this.owner = owner;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public long getTotalMiss() {
-        return totalMiss;
-    }
-
-    public void setTotalMiss(long totalMiss) {
-        this.totalMiss = totalMiss;
-    }
-
-    public long getTotalStmts() {
-        return totalStmts;
-    }
-
-    public void setTotalStmts(long totalStmts) {
-        this.totalStmts = totalStmts;
-    }
-
-    public Project(String directory) {
-        this.directory = directory;
     }
 
     public String getDirectory() {
@@ -131,10 +113,6 @@ public class Project {
         this.dependencies = dependencies;
     }
 
-    public List<ProjectFile> getFiles() {
-        return files;
-    }
-
     public long getDependenciesCounter() {
         return dependenciesCounter;
     }
@@ -143,7 +121,13 @@ public class Project {
         this.dependenciesCounter = dependenciesCounter;
     }
 
-    public void setFiles(List<ProjectFile> files) { this.files = files; }
+    public List<ProjectFile> getFiles() {
+        return files;
+    }
+
+    public void setFiles(List<ProjectFile> files) {
+        this.files = files;
+    }
 
     public long getTotalCoverage() {
         return totalCoverage;
@@ -151,6 +135,22 @@ public class Project {
 
     public void setTotalCoverage(long totalCoverage) {
         this.totalCoverage = totalCoverage;
+    }
+
+    public long getTotalMiss() {
+        return totalMiss;
+    }
+
+    public void setTotalMiss(long totalMiss) {
+        this.totalMiss = totalMiss;
+    }
+
+    public long getTotalStmts() {
+        return totalStmts;
+    }
+
+    public void setTotalStmts(long totalStmts) {
+        this.totalStmts = totalStmts;
     }
 }
 
