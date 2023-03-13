@@ -31,7 +31,7 @@ public class ProjectFile {
     @ElementCollection
     Map<String, Double> similarity;
     @ManyToOne
-    private Project project;
+    private ProjectAnalysis projectAnalysis;
     @Column(name = "projectName")
     private String projectName;
 
@@ -60,12 +60,12 @@ public class ProjectFile {
                 '}';
     }
 
-    public Project getProject() {
-        return project;
+    public ProjectAnalysis getProject() {
+        return projectAnalysis;
     }
 
-    public void setProject(Project project) {
-        this.project = project;
+    public void setProject(ProjectAnalysis projectAnalysis) {
+        this.projectAnalysis = projectAnalysis;
     }
 
     public int getId() {

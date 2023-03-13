@@ -1,14 +1,12 @@
 package gr.uom.Service.Based.Assesment.service;
 
-import gr.uom.Service.Based.Assesment.model.Project;
+import gr.uom.Service.Based.Assesment.model.ProjectAnalysis;
 import gr.uom.Service.Based.Assesment.model.ProjectFile;
 import gr.uom.Service.Based.Assesment.repository.ProjectFileRepository;
-import gr.uom.Service.Based.Assesment.repository.ProjectRepository;
+import gr.uom.Service.Based.Assesment.repository.ProjectAnalysisRepository;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -25,9 +23,9 @@ import static gr.uom.Service.Based.Assesment.Parser.*;
 
 
 @org.springframework.stereotype.Service
-public class Service {
+public class ProjectAnalysisService {
                             @Autowired
-                            private ProjectRepository projectRepository;
+                            private ProjectAnalysisRepository projectAnalysisRepository;
                             @Autowired
                             private ProjectFileRepository projectFileRepository;
 
@@ -53,29 +51,22 @@ public class Service {
                             }
 
                             private int i;
-                            public Project runCommand(String gitUrl) throws Exception {
-                                Project mainProject = new Project();
+                            public ProjectAnalysis runCommand(String sha, String gitUrl) throws Exception {
+                                ProjectAnalysis mainProjectAnalysis = new ProjectAnalysis();
 
-                                storeUrlOwnerAndName(gitUrl, mainProject);
+                                mainProjectAnalysis.setSHA(sha);
+//                                mainProjectAnalysis.setSHA(findSHA(mainProjectAnalysis.getOwner(), mainProjectAnalysis.getName()));
 
-                                String homeDirectory = System.getProperty("user.dir") + File.separator + mainProject.getName();
-
-                                mainProject.setSHA(findSHA(mainProject.getOwner(), mainProject.getName()));
-
-                                if (projectRepository.existsProjectBySHA(mainProject.getSHA())) {
-                                    if (mainProject.getSHA().equals(projectRepository.findProjectBySHA(mainProject.getSHA()).getSHA())){
+                                if (projectAnalysisRepository.existsProjectBySHA(mainProjectAnalysis.getSHA())) {
+                                    if (mainProjectAnalysis.getSHA().equals(projectAnalysisRepository.findProjectBySHA(mainProjectAnalysis.getSHA()).getSHA())){
                                         throw new Exception("This commit has already been analyzed");
-                                    } else if (projectRepository.existsProjectBySHA(mainProject.getSHA())) {
-                                        projectRepository.removeProjectBySHA(mainProject.getSHA());
+                                    } else if (projectAnalysisRepository.existsProjectBySHA(mainProjectAnalysis.getSHA())) {
+                                        projectAnalysisRepository.removeProjectBySHA(mainProjectAnalysis.getSHA());
                                     }
                                 }
 
-                                mainProject.setDirectory(homeDirectory);
-
-                                cloneRepository(mainProject.getOwner(), mainProject.getName(), homeDirectory);
-
-                                Path dir = Paths.get(homeDirectory);
-                                File folder = new File(homeDirectory);
+                                Path dir = Paths.get(mainProjectAnalysis.getDirectory());
+                                File folder = new File(mainProjectAnalysis.getDirectory());
                                 File[] listOfFiles = folder.listFiles();
                                 ArrayList<ProjectFile> fileList = new ArrayList<ProjectFile>();
                                 HashMap<String, Double> fileSimilarityLIst = new HashMap<String, Double>(listOfFiles.length);
@@ -87,12 +78,12 @@ public class Service {
                                                 ProjectFile newFile = new ProjectFile(file.toFile(), fileSimilarityLIst);
                                                 newFile.setName(file.toFile().getName());
                         fileList.add(newFile);
-                        newFile.setProjectName(mainProject.getName());
-                        mainProject.getFiles().add(newFile);
+                        newFile.setProjectName(mainProjectAnalysis.getName());
+                        mainProjectAnalysis.getFiles().add(newFile);
                     });
         }
 
-        mainProject.setFiles(fileList);
+        mainProjectAnalysis.setFiles(fileList);
 
         int fileListSize = fileList.size()/4;
         List<ArrayList<ProjectFile>> chunkedLists = new ArrayList<>();
@@ -105,11 +96,11 @@ public class Service {
             chunkedLists.add(new ArrayList<>(fileList.subList(startIndex, endIndex)));
         }
 
-        Thread firstThread = new Thread(testsRunnable(mainProject, fileList, homeDirectory));
-        Thread secondThread = new Thread(pylintRunnable(chunkedLists, mainProject, 0));
-        Thread thirdThread = new Thread(pylintRunnable(chunkedLists, mainProject, 1));
-        Thread fourthThread = new Thread(pylintRunnable(chunkedLists, mainProject, 2));
-        Thread fifthTread = new Thread(pylintRunnable(chunkedLists, mainProject, 3));
+        Thread firstThread = new Thread(testsRunnable(mainProjectAnalysis, fileList, mainProjectAnalysis.getDirectory()));
+        Thread secondThread = new Thread(pylintRunnable(chunkedLists, mainProjectAnalysis, 0));
+        Thread thirdThread = new Thread(pylintRunnable(chunkedLists, mainProjectAnalysis, 1));
+        Thread fourthThread = new Thread(pylintRunnable(chunkedLists, mainProjectAnalysis, 2));
+        Thread fifthTread = new Thread(pylintRunnable(chunkedLists, mainProjectAnalysis, 3));
 
         firstThread.start();
         secondThread.start();
@@ -124,9 +115,9 @@ public class Service {
         fourthThread.join();
         fifthTread.join();
 
-        FileUtils.cleanDirectory(new File(homeDirectory));
-        FileSystemUtils.deleteRecursively(Path.of(homeDirectory));
-        return mainProject;
+        FileUtils.cleanDirectory(new File(mainProjectAnalysis.getDirectory()));
+        FileSystemUtils.deleteRecursively(Path.of(mainProjectAnalysis.getDirectory()));
+        return mainProjectAnalysis;
     }
 
     private String findSHA(String owner, String repoName) throws Exception {
@@ -144,7 +135,7 @@ public class Service {
         return sha;
     }
 
-    public void executeCommand(Project project, ArrayList<ProjectFile> fileList, String command, String destination) throws IOException, InterruptedException {
+    public void executeCommand(ProjectAnalysis projectAnalysis, ArrayList<ProjectFile> fileList, String command, String destination) throws IOException, InterruptedException {
         ArrayList<String> similarityResponse = new ArrayList<>();
         ArrayList<String> commentsResponse = new ArrayList<>();
         Process p = Runtime.getRuntime().exec(command + destination);
@@ -153,36 +144,36 @@ public class Service {
             List<String> lines = reader.lines().collect(Collectors.toList());
             for (String line : lines) {
                 if(command.startsWith("python3 -W ignore " + System.getProperty("user.dir")+ File.separator + "duplicate-code-detection-tool/duplicate_code_detection.py -d  ")){
-                    if(line.contains("Code duplication probability for") || line.startsWith(project.getDirectory())){
+                    if(line.contains("Code duplication probability for") || line.startsWith("/app" + projectAnalysis.getDirectory())){
                         similarityResponse.add(line);
                     }
                 }else if(command.startsWith("pylint")){
-                    if(line.contains("Your code has been rated at") || line.startsWith("************* Module ") || line.startsWith(project.getName())) {
+                    if(line.contains("Your code has been rated at") || line.startsWith("************* Module ") || line.startsWith("/app" + projectAnalysis.getDirectory())) {
                         commentsResponse.add(line);
                     }
                 }else if(command.startsWith("pytest")){
-                    if(line.contains(project.getName()) || line.startsWith("TOTAL")){
-                        storeDataInObjects(project, fileList, line, command);
+                    if(line.startsWith("/app" + projectAnalysis.getDirectory()) || line.startsWith("TOTAL")){
+                        storeDataInObjects(projectAnalysis, fileList, line, command);
                     }
                 }
                 System.out.println(line);
             }
             if (similarityResponse.size()>0){
-                storeSimilarity(similarityResponse, fileList, project);
+                storeSimilarity(similarityResponse, fileList, projectAnalysis);
             }
             if (commentsResponse.size()>0) {
-                storeComments(commentsResponse, fileList, project);
+                storeComments(commentsResponse, fileList, projectAnalysis);
             }
         }
 
     }
 
 
-    public Runnable pylintRunnable( List<ArrayList<ProjectFile>> chunkedLists, Project mainProject, int index){
+    public Runnable pylintRunnable(List<ArrayList<ProjectFile>> chunkedLists, ProjectAnalysis mainProjectAnalysis, int index){
         return () -> {
             for (ProjectFile file : chunkedLists.get(index))
                 try {
-                    executeCommand(mainProject, chunkedLists.get(index), "pylint ", String.valueOf(file.getFirstFile()));
+                    executeCommand(mainProjectAnalysis, chunkedLists.get(index), "pylint ", String.valueOf(file.getFirstFile()));
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 } catch (InterruptedException e) {
@@ -191,41 +182,41 @@ public class Service {
         };
     }
 
-    public Runnable testsRunnable(Project mainProject, ArrayList<ProjectFile> fileList, String homeDirectory) {
+    public Runnable testsRunnable(ProjectAnalysis mainProjectAnalysis, ArrayList<ProjectFile> fileList, String homeDirectory) {
         return () -> {
             try {
-                executeCommand(mainProject, fileList, "pytest --cov=", homeDirectory);
-                executeCommand(mainProject, fileList, "python3 -W ignore " + System.getProperty("user.dir")+ File.separator + "duplicate-code-detection-tool/duplicate_code_detection.py -d  ", homeDirectory);
+                executeCommand(mainProjectAnalysis, fileList, "pytest --cov=", homeDirectory);
+                executeCommand(mainProjectAnalysis, fileList, "python3 -W ignore " + System.getProperty("user.dir")+ File.separator + "duplicate-code-detection-tool/duplicate_code_detection.py -d  ", homeDirectory);
                 do{
-                    executeCommand(mainProject, fileList, "pipreqs --force ", homeDirectory);
+                    executeCommand(mainProjectAnalysis, fileList, "pipreqs --force ", homeDirectory);
                 }while (!(new File(homeDirectory + "/requirements.txt")).exists());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            System.out.println("PipReqs counted " + countLineBufferedReader(mainProject, homeDirectory + "/requirements.txt") + " dependencies on this project.");
+            System.out.println("PipReqs counted " + countLineBufferedReader(mainProjectAnalysis, homeDirectory + "/requirements.txt") + " dependencies on this project.");
         };
     }
 
-    public List<Project> getAllProjects() {
-        return projectRepository.findAll();
+    public List<ProjectAnalysis> getAllProjects() {
+        return projectAnalysisRepository.findAll();
     }
 
     public List<ProjectFile> getAllProjectFiles() {
         return projectFileRepository.findAll();
     }
 
-    public Optional<Project> getProjectByGitUrl(String gitUrl) {
-        return projectRepository.findProjectByGitUrl(gitUrl);
+    public Optional<ProjectAnalysis> getProjectByGitUrl(String gitUrl) {
+        return projectAnalysisRepository.findProjectByGitUrl(gitUrl);
     }
 
     public void deleteProject(Long projectId) {
-        projectRepository.deleteById(projectId);
+        projectAnalysisRepository.deleteById(projectId);
     }
 
-    public void saveProject(Project savedProject) {
-        projectRepository.save(savedProject);
+    public void saveProject(ProjectAnalysis savedProjectAnalysis) {
+        projectAnalysisRepository.save(savedProjectAnalysis);
     }
 
     public List<ProjectFile> getProjectFilesByName(String projectName) {

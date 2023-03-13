@@ -1,7 +1,7 @@
 package gr.uom.Service.Based.Assesment;
 
 import gr.uom.Service.Based.Assesment.model.Comment;
-import gr.uom.Service.Based.Assesment.model.Project;
+import gr.uom.Service.Based.Assesment.model.ProjectAnalysis;
 import gr.uom.Service.Based.Assesment.model.ProjectFile;
 
 import java.io.*;
@@ -16,13 +16,13 @@ import static org.apache.sshd.common.util.GenericUtils.length;
 
 public class Parser {
 
-    public static void storeUrlOwnerAndName(String gitUrl, Project mainProject) {
+    public static void storeUrlOwnerAndName(String gitUrl, ProjectAnalysis mainProjectAnalysis) {
         String[] url = gitUrl.split("/");
-        mainProject.setGitUrl(gitUrl);
-        mainProject.setName(url[4].split("\\.")[0]);
-        mainProject.setOwner(url[3]);
+        mainProjectAnalysis.setGitUrl(gitUrl);
+        mainProjectAnalysis.setName(url[4].split("\\.")[0]);
+        mainProjectAnalysis.setOwner(url[3]);
     }
-    public static long countLineBufferedReader(Project project, String fileName) {
+    public static long countLineBufferedReader(ProjectAnalysis projectAnalysis, String fileName) {
         ArrayList<String> dependencies = new ArrayList<>();
         String line;
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
@@ -32,15 +32,15 @@ public class Parser {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        storeDepsInProject(project, dependencies, dependencies.size());
+        storeDepsInProject(projectAnalysis, dependencies, dependencies.size());
         return dependencies.size();
 
     }
 
-    public static void storeDataInObjects(Project project,ArrayList<ProjectFile> fileList, String response, String command) {
+    public static void storeDataInObjects(ProjectAnalysis projectAnalysis, ArrayList<ProjectFile> fileList, String response, String command) {
 
         if(command.startsWith("pytest --cov=")) {
-            if(response.startsWith(project.getName())){
+            if(response.startsWith(projectAnalysis.getName())){
                 Pattern filePattern = Pattern.compile(regexPattern(command,"file"));
                 Matcher fileMatcher = filePattern.matcher(response);
                 Boolean fileFind = fileMatcher.find();
@@ -90,15 +90,15 @@ public class Parser {
                 Boolean totalCovFind = totalCovMatcher.find();
                 if(totalStmtsFind){
                     Long stmts = Long.parseLong(totalStmtsMatcher.group(1));
-                    project.setTotalStmts(stmts);
+                    projectAnalysis.setTotalStmts(stmts);
                 }
                 if(totalMissFind){
                     Long miss = Long.parseLong(totalMissMatcher.group(1));
-                    project.setTotalMiss(miss);
+                    projectAnalysis.setTotalMiss(miss);
                 }
                 if(totalCovFind){
                     Long cov = Long.parseLong(totalCovMatcher.group(1));
-                    project.setTotalCoverage(cov);
+                    projectAnalysis.setTotalCoverage(cov);
                 }
             }
         } else if(command.startsWith("pylint")) {
@@ -107,12 +107,12 @@ public class Parser {
 
     }
 
-    public static void storeDepsInProject(Project project, ArrayList<String> dependencies, int dependenciesCounter){
-        project.setDependenciesCounter(dependenciesCounter);
-        project.setDependencies(dependencies);
+    public static void storeDepsInProject(ProjectAnalysis projectAnalysis, ArrayList<String> dependencies, int dependenciesCounter){
+        projectAnalysis.setDependenciesCounter(dependenciesCounter);
+        projectAnalysis.setDependencies(dependencies);
     }
 
-    public static void storeSimilarity(ArrayList<String> similarityResponse, ArrayList<ProjectFile> fileList, Project project){
+    public static void storeSimilarity(ArrayList<String> similarityResponse, ArrayList<ProjectFile> fileList, ProjectAnalysis projectAnalysis){
         String mainFile = "";
         int position = 0;
         Map<String, HashMap<String, Double>> similarityMap = new HashMap<>();
@@ -134,7 +134,7 @@ public class Parser {
                     }
                     similarityMap.put(mainFile, new HashMap<>());
                 }
-            } else if (similarityResponse.get(i).startsWith(project.getDirectory())) {
+            } else if (similarityResponse.get(i).startsWith("/app" + projectAnalysis.getDirectory())) {
                 Pattern filePattern = Pattern.compile(regexPattern("duplication", "file"));
                 Matcher fileMatcher = filePattern.matcher(similarityResponse.get(i));
                 Boolean fileFind = fileMatcher.find();
@@ -160,7 +160,7 @@ public class Parser {
     }
 
 
-    public static void storeComments(ArrayList<String> commentsResponse, ArrayList<ProjectFile> fileList, Project project) {
+    public static void storeComments(ArrayList<String> commentsResponse, ArrayList<ProjectFile> fileList, ProjectAnalysis projectAnalysis) {
         String mainFile = "";
         List<Comment> comments = new ArrayList<>();
         ProjectFile currentProjectFile = null;
@@ -176,7 +176,7 @@ public class Parser {
                     mainFile = fileMatcher.group(1);
                     currentProjectFile = findProjectFile(mainFile, fileList);
                 }
-            } else if (currentLine.startsWith(project.getName())) {
+            } else if (currentLine.startsWith("/app" + projectAnalysis.getDirectory())) {
                 comments.add(new Comment(currentLine.replace("'", "\\'")));
             } else if (currentLine.contains("Your code has been rated at")) {
                 if (currentProjectFile != null) {
@@ -289,3 +289,8 @@ public class Parser {
     }
 
 }
+
+
+
+
+

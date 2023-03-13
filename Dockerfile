@@ -12,7 +12,6 @@ RUN apt-get update && \
     git clone https://github.com/platisd/duplicate-code-detection-tool.git && \
     rm -rf /var/lib/apt/lists/*
 
-
 ARG JAR_FILE=target/*.jar
 COPY ${JAR_FILE} app.jar
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
