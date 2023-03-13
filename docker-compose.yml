@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   app:
-    image: 'service_based_assessment_image:latest'
+    image: 'geoapos/service_based_assessment:latest'
     build:
       context: .
     container_name: app
