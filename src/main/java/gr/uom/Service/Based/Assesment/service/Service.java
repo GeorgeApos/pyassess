@@ -26,23 +26,15 @@ import static gr.uom.Service.Based.Assesment.Parser.*;
 
 @org.springframework.stereotype.Service
 public class Service {
-
                             @Autowired
                             private ProjectRepository projectRepository;
-
                             @Autowired
                             private ProjectFileRepository projectFileRepository;
-
-                            @Value("${github.token}")
-                            private String githubToken;
 
                             public void cloneRepository(String owner, String repoName, String cloneDir) throws Exception {
 
                                 RestTemplate restTemplate = new RestTemplate();
-                                restTemplate.getInterceptors().add((request, body, execution) -> {
-                                    request.getHeaders().add("Authorization", "Bearer " + githubToken);
-                                    return execution.execute(request, body);
-                                });
+                                restTemplate.getInterceptors().add((request, body, execution) -> execution.execute(request, body));
 
                                 String apiUrl = "https://api.github.com/repos/" + owner + "/" + repoName;
                                 HttpHeaders headers = new HttpHeaders();
@@ -53,7 +45,6 @@ public class Service {
                                 String cloneUrl = (String) json.get("clone_url");
 
                                 Git clone = Git.cloneRepository()
-                                        .setCredentialsProvider(new UsernamePasswordCredentialsProvider(githubToken, ""))
                                         .setURI(cloneUrl)
                                         .setDirectory(new File(cloneDir))
                                         .call();
@@ -140,10 +131,7 @@ public class Service {
 
     private String findSHA(String owner, String repoName) throws Exception {
         RestTemplate restTemplate = new RestTemplate();
-        restTemplate.getInterceptors().add((request, body, execution) -> {
-            request.getHeaders().add("Authorization", "Bearer " + githubToken);
-            return execution.execute(request, body);
-        });
+        restTemplate.getInterceptors().add((request, body, execution) -> execution.execute(request, body));
 
         String apiUrl = "https://api.github.com/repos/" + owner + "/" + repoName + "/commits";
         HttpHeaders headers = new HttpHeaders();
