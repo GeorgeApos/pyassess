@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/projects")
+@RequestMapping("/project_analysis")
 public class ProjectAnalysisController {
 
     @Autowired
@@ -25,21 +25,14 @@ public class ProjectAnalysisController {
     @Autowired
     private ProjectFileRepository projectFileRepository;
 
-    @CrossOrigin(origins = "*")
-    @PostMapping("/")
-    public ResponseEntity<ProjectAnalysis> startAnalysis(@RequestParam("gitUrl") String gitUrl) throws Exception {
-        ProjectAnalysis savedProjectAnalysis = appProjectService.runCommand(null, gitUrl);
-        appProjectService.saveProject(savedProjectAnalysis);
-        return ResponseEntity.ok(savedProjectAnalysis);
-    }
 
-    @CrossOrigin(origins = "*")
-    @PostMapping("/")
-    public ResponseEntity<ProjectAnalysis> handleSimpleRequest(@RequestParam("gitUrl") String gitUrl) throws Exception {
-        ProjectAnalysis savedProjectAnalysis = appProjectService.runCommand(null, gitUrl);
-        appProjectService.saveProject(savedProjectAnalysis);
-        return ResponseEntity.ok(savedProjectAnalysis);
-    }
+//    @CrossOrigin(origins = "*")
+//    @PostMapping("/")
+//    public ResponseEntity<ProjectAnalysis> handleSimpleRequest(@RequestParam("gitUrl") String gitUrl) throws Exception {
+//        ProjectAnalysis savedProjectAnalysis = appProjectService.runCommand(null, gitUrl);
+//        appProjectService.saveProject(savedProjectAnalysis);
+//        return ResponseEntity.ok(savedProjectAnalysis);
+//    }
 
     @CrossOrigin(origins = "*")
     @DeleteMapping("/")

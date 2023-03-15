@@ -1,23 +1,25 @@
 package gr.uom.Service.Based.Assesment.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "projects")
+@AllArgsConstructor
+@Table(name = "project_analysis")
 public class ProjectAnalysis {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @Column(name = "gitUrl", unique = true)
+    @Column(name = "gitUrl")
     private String gitUrl;
     @Column(name = "SHA")
     private String SHA;
     @Column(name = "owner")
     private String owner;
-    @Column(name = "name", unique = true)
+    @Column(name = "name")
     private String name;
     @Column(name = "directory")
     private String directory;
@@ -26,7 +28,7 @@ public class ProjectAnalysis {
     private List<String> dependencies;
     @Column(name = "dependenciesCounter")
     private long dependenciesCounter;
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "projectAnalysis", cascade = CascadeType.ALL)
     private List<ProjectFile> files = new ArrayList<>();
     @Column(name = "totalCoverage")
     private long totalCoverage;
@@ -34,6 +36,8 @@ public class ProjectAnalysis {
     private long totalMiss;
     @Column(name = "totalStmts")
     private long totalStmts;
+    @ManyToOne
+    private Project project;
 
     public ProjectAnalysis() {
     }

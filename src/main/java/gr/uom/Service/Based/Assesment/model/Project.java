@@ -5,15 +5,17 @@ import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Entity
+@Table(name = "projects")
 public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @Column(name = "gitUrl", unique = true)
+    @Column(name = "gitUrl")
     private String gitUrl;
     @Column(name = "owner")
     private String owner;
-    @Column(name = "name", unique = true)
+    @Column(name = "name")
     private String name;
     @Column(name = "directory")
     private String directory;
@@ -21,7 +23,6 @@ public class Project {
     private List<String> SHA = new ArrayList<>();
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     private List<ProjectAnalysis> projectAnalysis = new ArrayList<>();
-
     public Project() {
     }
 

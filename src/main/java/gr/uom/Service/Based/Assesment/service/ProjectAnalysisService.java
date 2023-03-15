@@ -1,10 +1,12 @@
 package gr.uom.Service.Based.Assesment.service;
 
+import gr.uom.Service.Based.Assesment.model.Project;
 import gr.uom.Service.Based.Assesment.model.ProjectAnalysis;
 import gr.uom.Service.Based.Assesment.model.ProjectFile;
 import gr.uom.Service.Based.Assesment.repository.ProjectFileRepository;
 import gr.uom.Service.Based.Assesment.repository.ProjectAnalysisRepository;
 import org.eclipse.jgit.api.Git;
+import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -22,65 +24,70 @@ import java.util.stream.Stream;
 import static gr.uom.Service.Based.Assesment.Parser.*;
 
 
-@org.springframework.stereotype.Service
+@Service
 public class ProjectAnalysisService {
-                            @Autowired
-                            private ProjectAnalysisRepository projectAnalysisRepository;
-                            @Autowired
-                            private ProjectFileRepository projectFileRepository;
+    @Autowired
+    private ProjectAnalysisRepository projectAnalysisRepository;
+    @Autowired
+    private ProjectFileRepository projectFileRepository;
 
-                            public void cloneRepository(String owner, String repoName, String cloneDir) throws Exception {
+    public void cloneRepository(String owner, String repoName, String cloneDir) throws Exception {
 
-                                RestTemplate restTemplate = new RestTemplate();
-                                restTemplate.getInterceptors().add((request, body, execution) -> execution.execute(request, body));
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getInterceptors().add((request, body, execution) -> execution.execute(request, body));
 
-                                String apiUrl = "https://api.github.com/repos/" + owner + "/" + repoName;
-                                HttpHeaders headers = new HttpHeaders();
-                                headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-                                HttpEntity<String> entity = new HttpEntity<>(headers);
-                                ResponseEntity<Map> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, Map.class);
-                                Map<String, Object> json = response.getBody();
-                                String cloneUrl = (String) json.get("clone_url");
+        String apiUrl = "https://api.github.com/repos/" + owner + "/" + repoName;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<Map> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, Map.class);
+        Map<String, Object> json = response.getBody();
+        String cloneUrl = (String) json.get("clone_url");
 
-                                Git clone = Git.cloneRepository()
-                                        .setURI(cloneUrl)
-                                        .setDirectory(new File(cloneDir))
-                                        .call();
+        Git clone = Git.cloneRepository()
+                .setURI(cloneUrl)
+                .setDirectory(new File(cloneDir))
+                .call();
 
-                                clone.close();
-                            }
+        clone.close();
+    }
 
-                            private int i;
-                            public ProjectAnalysis runCommand(String sha, String gitUrl) throws Exception {
-                                ProjectAnalysis mainProjectAnalysis = new ProjectAnalysis();
+    private int i;
+    public ProjectAnalysis runCommand(Project mainProject, String sha, String gitUrl) throws Exception {
+        ProjectAnalysis mainProjectAnalysis = new ProjectAnalysis();
 
-                                mainProjectAnalysis.setSHA(sha);
-//                                mainProjectAnalysis.setSHA(findSHA(mainProjectAnalysis.getOwner(), mainProjectAnalysis.getName()));
+        mainProjectAnalysis.setSHA(sha);
+        mainProjectAnalysis.setGitUrl(gitUrl);
+        mainProjectAnalysis.setOwner(mainProject.getOwner());
+        mainProjectAnalysis.setName(mainProject.getName());
+        mainProjectAnalysis.setDirectory(mainProject.getDirectory());
 
-                                if (projectAnalysisRepository.existsProjectBySHA(mainProjectAnalysis.getSHA())) {
-                                    if (mainProjectAnalysis.getSHA().equals(projectAnalysisRepository.findProjectBySHA(mainProjectAnalysis.getSHA()).getSHA())){
-                                        throw new Exception("This commit has already been analyzed");
-                                    } else if (projectAnalysisRepository.existsProjectBySHA(mainProjectAnalysis.getSHA())) {
-                                        projectAnalysisRepository.removeProjectBySHA(mainProjectAnalysis.getSHA());
-                                    }
-                                }
+//        mainProjectAnalysis.setSHA(findSHA(mainProjectAnalysis.getOwner(), mainProjectAnalysis.getName()));
 
-                                Path dir = Paths.get(mainProjectAnalysis.getDirectory());
-                                File folder = new File(mainProjectAnalysis.getDirectory());
-                                File[] listOfFiles = folder.listFiles();
-                                ArrayList<ProjectFile> fileList = new ArrayList<ProjectFile>();
-                                HashMap<String, Double> fileSimilarityLIst = new HashMap<String, Double>(listOfFiles.length);
-                                try (Stream<Path> stream = Files.walk(dir)){
-                                    stream
-                                            .filter(Files::isRegularFile)
-                                            .filter(path -> path.toString().endsWith(".py"))
-                                            .forEach(file -> {
-                                                ProjectFile newFile = new ProjectFile(file.toFile(), fileSimilarityLIst);
-                                                newFile.setName(file.toFile().getName());
-                        fileList.add(newFile);
-                        newFile.setProjectName(mainProjectAnalysis.getName());
-                        mainProjectAnalysis.getFiles().add(newFile);
-                    });
+        if (projectAnalysisRepository.existsProjectBySHA(mainProjectAnalysis.getSHA())) {
+        if (mainProjectAnalysis.getSHA().equals(projectAnalysisRepository.findProjectBySHA(mainProjectAnalysis.getSHA()).getSHA())){
+            throw new Exception("This commit has already been analyzed");
+        } else if (projectAnalysisRepository.existsProjectBySHA(mainProjectAnalysis.getSHA())) {
+            projectAnalysisRepository.removeProjectBySHA(mainProjectAnalysis.getSHA());
+            }
+        }
+
+        Path dir = Paths.get(mainProjectAnalysis.getDirectory());
+        File folder = new File(mainProjectAnalysis.getDirectory());
+        File[] listOfFiles = folder.listFiles();
+        ArrayList<ProjectFile> fileList = new ArrayList<ProjectFile>();
+        HashMap<String, Double> fileSimilarityLIst = new HashMap<String, Double>(listOfFiles.length);
+        try (Stream<Path> stream = Files.walk(dir)){
+            stream
+            .filter(Files::isRegularFile)
+            .filter(path -> path.toString().endsWith(".py"))
+            .forEach(file -> {
+            ProjectFile newFile = new ProjectFile(file.toFile(), fileSimilarityLIst);
+            newFile.setName(file.toFile().getName());
+            fileList.add(newFile);
+            newFile.setProjectName(mainProjectAnalysis.getName());
+            mainProjectAnalysis.getFiles().add(newFile);
+        });
         }
 
         mainProjectAnalysis.setFiles(fileList);
@@ -115,8 +122,6 @@ public class ProjectAnalysisService {
         fourthThread.join();
         fifthTread.join();
 
-        FileUtils.cleanDirectory(new File(mainProjectAnalysis.getDirectory()));
-        FileSystemUtils.deleteRecursively(Path.of(mainProjectAnalysis.getDirectory()));
         return mainProjectAnalysis;
     }
 
@@ -196,6 +201,7 @@ public class ProjectAnalysisService {
                 throw new RuntimeException(e);
             }
             System.out.println("PipReqs counted " + countLineBufferedReader(mainProjectAnalysis, homeDirectory + "/requirements.txt") + " dependencies on this project.");
+            new File(homeDirectory + "/requirements.txt").delete();
         };
     }
 

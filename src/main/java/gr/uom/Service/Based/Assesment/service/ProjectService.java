@@ -2,48 +2,83 @@ package gr.uom.Service.Based.Assesment.service;
 
 import gr.uom.Service.Based.Assesment.model.Project;
 import gr.uom.Service.Based.Assesment.model.ProjectAnalysis;
+import gr.uom.Service.Based.Assesment.repository.ProjectRepository;
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.util.FileSystemUtils;
 import org.springframework.web.client.RestTemplate;
-
+import org.eclipse.egit.github.core.Commit;
+import org.eclipse.egit.github.core.RepositoryCommit;
+import org.eclipse.egit.github.core.service.CommitService;
+import org.eclipse.egit.github.core.service.RepositoryService;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.*;
 
-
+@Service
 public class ProjectService {
+
+    @Autowired
+    private ProjectRepository projectRepository;
 
     @Autowired
     private ProjectAnalysisService projectAnalysisService;
 
-    public void runCommand(String gitUrl) throws Exception {
+    public Project runCommand(String gitUrl) throws Exception {
         Project project = new Project();
         ArrayList<ProjectAnalysis> projectAnalysisList = new ArrayList<ProjectAnalysis>();
 
-        cloneRepository(project.getOwner(), project.getName(), System.getProperty("user.dir"));
-
         storeProjectUrlOwnerAndName(gitUrl, project);
-
         String homeDirectory = System.getProperty("user.dir") + File.separator + project.getName();
         project.setDirectory(homeDirectory);
 
-        List<String> SHAs = captureSHAs(gitUrl, homeDirectory);
+        Repository repo = new RepositoryBuilder().setGitDir(new File(project.getDirectory() + File.separator + ".git")).build();
+        Git git = new Git(repo);
+
+        cloneRepository(git, project.getOwner(), project.getName(), project.getDirectory());
+
+        List<String> SHAs = captureSHAs(gitUrl, project.getOwner(), project.getName());
 
         project.setSHA(SHAs);
 
         for(String sha: SHAs){
-            projectAnalysisList.add(projectAnalysisService.runCommand(sha, homeDirectory));
+            ObjectId commitId = repo.resolve(sha);
+            git.checkout().setName(commitId.getName()).call();
+            projectAnalysisList.add(projectAnalysisService.runCommand(project, sha, homeDirectory));
         }
 
         project.setProjectAnalysis(projectAnalysisList);
 
+        repo.close();
+        git.close();
+
+//        FileUtils.cleanDirectory(new File(project.getDirectory()));
+//        FileSystemUtils.deleteRecursively(Path.of(project.getDirectory()));
+        return project;
     }
 
-    private List<String> captureSHAs(String gitUrl, String homeDirectory) {
-        return null;
+    private List<String> captureSHAs(String gitUrl, String owner, String name) throws Exception {
+        List<String> commitSHAs = new ArrayList<>();
+
+        RepositoryService repoService = new RepositoryService();
+        CommitService commitService = new CommitService();
+
+        org.eclipse.egit.github.core.Repository repository = repoService.getRepository(owner, name);
+
+        List<RepositoryCommit> commits = commitService.getCommits(repository);
+
+        for (RepositoryCommit commit : commits) {
+            commitSHAs.add(commit.getSha());
+        }
+
+        return commitSHAs;
     }
 
     public static void storeProjectUrlOwnerAndName(String gitUrl, Project project) {
@@ -53,7 +88,7 @@ public class ProjectService {
         project.setOwner(url[3]);
     }
 
-    public void cloneRepository(String owner, String repoName, String cloneDir) throws Exception {
+    public void cloneRepository(Git git, String owner, String repoName, String cloneDir) throws Exception {
 
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getInterceptors().add((request, body, execution) -> execution.execute(request, body));
@@ -66,10 +101,15 @@ public class ProjectService {
         Map<String, Object> json = response.getBody();
         String cloneUrl = (String) json.get("clone_url");
 
-        Git clone = Git.cloneRepository()
-                .setURI(cloneUrl)
-                .setDirectory(new File(cloneDir))
-                .call();
+        git.cloneRepository().setURI(cloneUrl).setDirectory(new File(cloneDir)).call();
+
     }
 
+    public Optional<Project> getProjectByGitUrl(String gitUrl) {
+        return projectRepository.findProjectByGitUrl(gitUrl);
+    }
+
+    public void saveProject(Project resultProject) {
+        projectRepository.save(resultProject);
+    }
 }
