@@ -92,6 +92,7 @@ public class ProjectAnalysisService {
 
         mainProjectAnalysis.setFiles(fileList);
 
+
         int fileListSize = fileList.size()/4;
         List<ArrayList<ProjectFile>> chunkedLists = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
@@ -149,15 +150,15 @@ public class ProjectAnalysisService {
             List<String> lines = reader.lines().collect(Collectors.toList());
             for (String line : lines) {
                 if(command.startsWith("python3 -W ignore " + System.getProperty("user.dir")+ File.separator + "duplicate-code-detection-tool/duplicate_code_detection.py -d  ")){
-                    if(line.contains("Code duplication probability for") || line.startsWith("/app" + projectAnalysis.getDirectory())){
+                    if(line.contains("Code duplication probability for") || line.startsWith(projectAnalysis.getDirectory())){
                         similarityResponse.add(line);
                     }
                 }else if(command.startsWith("pylint")){
-                    if(line.contains("Your code has been rated at") || line.startsWith("************* Module ") || line.startsWith("/app" + projectAnalysis.getDirectory())) {
+                    if(line.contains("Your code has been rated at") || line.startsWith("************* Module ") || line.startsWith(projectAnalysis.getName())) {
                         commentsResponse.add(line);
                     }
                 }else if(command.startsWith("pytest")){
-                    if(line.startsWith("/app" + projectAnalysis.getDirectory()) || line.startsWith("TOTAL")){
+                    if(line.startsWith(projectAnalysis.getName()) || line.startsWith("TOTAL")){
                         storeDataInObjects(projectAnalysis, fileList, line, command);
                     }
                 }

@@ -134,7 +134,7 @@ public class Parser {
                     }
                     similarityMap.put(mainFile, new HashMap<>());
                 }
-            } else if (similarityResponse.get(i).startsWith("/app" + projectAnalysis.getDirectory())) {
+            } else if (similarityResponse.get(i).startsWith(projectAnalysis.getDirectory())) {
                 Pattern filePattern = Pattern.compile(regexPattern("duplication", "file"));
                 Matcher fileMatcher = filePattern.matcher(similarityResponse.get(i));
                 Boolean fileFind = fileMatcher.find();
@@ -176,7 +176,7 @@ public class Parser {
                     mainFile = fileMatcher.group(1);
                     currentProjectFile = findProjectFile(mainFile, fileList);
                 }
-            } else if (currentLine.startsWith("/app" + projectAnalysis.getDirectory())) {
+            } else if (currentLine.startsWith(projectAnalysis.getName())) {
                 comments.add(new Comment(currentLine.replace("'", "\\'")));
             } else if (currentLine.contains("Your code has been rated at")) {
                 if (currentProjectFile != null) {

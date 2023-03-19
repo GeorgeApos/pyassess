@@ -3,6 +3,7 @@ package gr.uom.Service.Based.Assesment.repository;
 import gr.uom.Service.Based.Assesment.model.ProjectAnalysis;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Map;
 import java.util.Optional;
 
 public interface ProjectAnalysisRepository extends JpaRepository<ProjectAnalysis, Long> {
@@ -13,4 +14,6 @@ public interface ProjectAnalysisRepository extends JpaRepository<ProjectAnalysis
     boolean existsProjectBySHA(String sha);
 
     void removeProjectBySHA(String sha);
+
+    Map<String, Integer> findProjectAnalysisByProjectAndSimilarity(String gitUrl);
 }

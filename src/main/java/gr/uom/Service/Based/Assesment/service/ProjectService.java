@@ -45,10 +45,22 @@ public class ProjectService {
         cloneRepository(git, project.getOwner(), project.getName(), project.getDirectory());
 
         List<String> SHAs = captureSHAs(gitUrl, project.getOwner(), project.getName());
+        List<String> selectedSHAs = new ArrayList<>();
 
-        project.setSHA(SHAs);
+        if(SHAs.size() > 10) {
+            selectedSHAs.add(SHAs.get(0));
+            int step = SHAs.size() / 9;
 
-        for(String sha: SHAs){
+            for (int i = 1; i < SHAs.size(); i += step) {
+                selectedSHAs.add(SHAs.get(i));
+            }
+        } else {
+            selectedSHAs = SHAs;
+        }
+
+        project.setSHA(selectedSHAs);
+
+        for(String sha: selectedSHAs){
             ObjectId commitId = repo.resolve(sha);
             git.checkout().setName(commitId.getName()).call();
             projectAnalysisList.add(projectAnalysisService.runCommand(project, sha, homeDirectory));
@@ -58,10 +70,22 @@ public class ProjectService {
 
         repo.close();
         git.close();
-
-//        FileUtils.cleanDirectory(new File(project.getDirectory()));
-//        FileSystemUtils.deleteRecursively(Path.of(project.getDirectory()));
+        deleteDirectory(new File(project.getDirectory()));
         return project;
+    }
+
+    public void deleteDirectory(File directory) throws IOException {
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    deleteDirectory(file);
+                } else {
+                    file.delete();
+                }
+            }
+        }
+        directory.delete();
     }
 
     private List<String> captureSHAs(String gitUrl, String owner, String name) throws Exception {
@@ -112,4 +136,5 @@ public class ProjectService {
     public void saveProject(Project resultProject) {
         projectRepository.save(resultProject);
     }
+
 }
