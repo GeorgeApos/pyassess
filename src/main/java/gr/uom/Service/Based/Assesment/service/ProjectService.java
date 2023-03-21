@@ -68,8 +68,9 @@ public class ProjectService {
                 projectAnalysisList.add(projectAnalysisService.runCommand(project, sha, homeDirectory));
             }
         } else {
-            projectAnalysisService.findSHA(project.getOwner(), project.getName());
-            projectAnalysisService.runCommand(project, project.getSHA().get(0), homeDirectory);
+            String tempSha = projectAnalysisService.findSHA(project.getOwner(), project.getName());
+            project.setSHA(Collections.singletonList(tempSha));
+            projectAnalysisList.add(projectAnalysisService.runCommand(project, tempSha, homeDirectory));
         }
 
         project.setProjectAnalysis(projectAnalysisList);

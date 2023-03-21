@@ -14,6 +14,4 @@ public interface ProjectAnalysisRepository extends JpaRepository<ProjectAnalysis
     boolean existsProjectBySHA(String sha);
 
     void removeProjectBySHA(String sha);
-
-    Map<String, Integer> findProjectAnalysisByProjectAndSimilarity(String gitUrl);
 }
