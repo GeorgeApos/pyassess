@@ -20,6 +20,7 @@ import org.eclipse.egit.github.core.service.RepositoryService;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+
 import java.util.*;
 
 @Service
@@ -31,7 +32,7 @@ public class ProjectService {
     @Autowired
     private ProjectAnalysisService projectAnalysisService;
 
-    public Project runCommand(String gitUrl) throws Exception {
+    public Project runCommand(String gitUrl, boolean flag) throws Exception {
         Project project = new Project();
         ArrayList<ProjectAnalysis> projectAnalysisList = new ArrayList<ProjectAnalysis>();
 
@@ -44,26 +45,31 @@ public class ProjectService {
 
         cloneRepository(git, project.getOwner(), project.getName(), project.getDirectory());
 
-        List<String> SHAs = captureSHAs(gitUrl, project.getOwner(), project.getName());
-        List<String> selectedSHAs = new ArrayList<>();
+        if (flag){
+            List<String> SHAs = captureSHAs(gitUrl, project.getOwner(), project.getName());
+            List<String> selectedSHAs = new ArrayList<>();
 
-        if(SHAs.size() > 10) {
-            selectedSHAs.add(SHAs.get(0));
-            int step = SHAs.size() / 9;
+            if(SHAs.size() > 10) {
+                selectedSHAs.add(SHAs.get(0));
+                int step = SHAs.size() / 9;
 
-            for (int i = 1; i < SHAs.size(); i += step) {
-                selectedSHAs.add(SHAs.get(i));
+                for (int i = 1; i < SHAs.size(); i += step) {
+                    selectedSHAs.add(SHAs.get(i));
+                }
+            } else {
+                selectedSHAs = SHAs;
+            }
+
+            project.setSHA(selectedSHAs);
+
+            for(String sha: selectedSHAs){
+                ObjectId commitId = repo.resolve(sha);
+                git.checkout().setName(commitId.getName()).call();
+                projectAnalysisList.add(projectAnalysisService.runCommand(project, sha, homeDirectory));
             }
         } else {
-            selectedSHAs = SHAs;
-        }
-
-        project.setSHA(selectedSHAs);
-
-        for(String sha: selectedSHAs){
-            ObjectId commitId = repo.resolve(sha);
-            git.checkout().setName(commitId.getName()).call();
-            projectAnalysisList.add(projectAnalysisService.runCommand(project, sha, homeDirectory));
+            projectAnalysisService.findSHA(project.getOwner(), project.getName());
+            projectAnalysisService.runCommand(project, project.getSHA().get(0), homeDirectory);
         }
 
         project.setProjectAnalysis(projectAnalysisList);
@@ -71,6 +77,7 @@ public class ProjectService {
         repo.close();
         git.close();
         deleteDirectory(new File(project.getDirectory()));
+
         return project;
     }
 

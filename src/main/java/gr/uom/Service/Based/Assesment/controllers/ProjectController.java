@@ -21,7 +21,7 @@ public class ProjectController {
     @CrossOrigin(origins = "*")
     @PostMapping("/")
     public ResponseEntity<Project> startAnalysis(@RequestParam("gitUrl") String gitUrl) throws Exception {
-        Project resultProject = appProjectService.runCommand(gitUrl);
+        Project resultProject = appProjectService.runCommand(gitUrl, true);
         appProjectService.saveProject(resultProject);
         return ResponseEntity.ok(resultProject);
     }
