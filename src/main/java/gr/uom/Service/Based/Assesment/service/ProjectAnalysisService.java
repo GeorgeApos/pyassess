@@ -7,12 +7,10 @@ import gr.uom.Service.Based.Assesment.repository.ProjectFileRepository;
 import gr.uom.Service.Based.Assesment.repository.ProjectAnalysisRepository;
 import org.eclipse.jgit.api.Git;
 import org.springframework.stereotype.Service;
-import org.springframework.util.FileSystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
-import org.apache.commons.io.FileUtils;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -229,6 +227,19 @@ public class ProjectAnalysisService {
     public List<ProjectFile> getProjectFilesByName(String projectName) {
         return projectFileRepository.findProjectFilesByProjectName(projectName);
     }
+
+    public List<ProjectAnalysis> getProjectAnalysisByProjectName(String name) {
+        List<ProjectAnalysis> projectAnalysisList = new ArrayList<>();
+        for (ProjectAnalysis projectAnalysis : projectAnalysisRepository.findAll())
+            if (projectAnalysis.getName().equals(name)){
+                projectAnalysisList.add(projectAnalysis);
+                List<ProjectFile> files = getProjectFilesByName(projectAnalysis.getName());
+                projectAnalysis.setFiles(files);
+            }
+
+        return projectAnalysisList;
+    }
+
 }
 
 
