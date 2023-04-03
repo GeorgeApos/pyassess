@@ -1,5 +1,6 @@
 package gr.uom.Service.Based.Assesment.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 
@@ -37,6 +38,7 @@ public class ProjectAnalysis {
     @Column(name = "totalStmts")
     private long totalStmts;
     @ManyToOne
+    @JsonIgnore
     private Project project;
 
     public ProjectAnalysis() {

@@ -4,8 +4,10 @@ import gr.uom.Service.Based.Assesment.model.Project;
 import gr.uom.Service.Based.Assesment.model.ProjectAnalysis;
 import gr.uom.Service.Based.Assesment.repository.ProjectRepository;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,9 +34,10 @@ public class ProjectService {
     @Autowired
     private ProjectAnalysisService projectAnalysisService;
 
-    public Project runCommand(String gitUrl, boolean flag) throws Exception {
+    public Project runCommand(String gitUrl, String branch, boolean flag) throws Exception {
         Project project = new Project();
         ArrayList<ProjectAnalysis> projectAnalysisList = new ArrayList<ProjectAnalysis>();
+        ArrayList<ProjectAnalysis> singleAnalyzedProjects = new ArrayList<>();
 
         storeProjectUrlOwnerAndName(gitUrl, project);
         String homeDirectory = System.getProperty("user.dir") + File.separator + project.getName();
@@ -43,9 +46,9 @@ public class ProjectService {
         Repository repo = new RepositoryBuilder().setGitDir(new File(project.getDirectory() + File.separator + ".git")).build();
         Git git = new Git(repo);
 
-        cloneRepository(git, project.getOwner(), project.getName(), project.getDirectory());
+        cloneRepository(git, project.getOwner(), project.getName(), project.getDirectory(), branch);
 
-        if (flag){
+        if (flag && branch == null) {
             List<String> SHAs = captureSHAs(gitUrl, project.getOwner(), project.getName());
             List<String> selectedSHAs = new ArrayList<>();
 
@@ -70,10 +73,13 @@ public class ProjectService {
         } else {
             String tempSha = projectAnalysisService.findSHA(project.getOwner(), project.getName());
             project.setSHA(Collections.singletonList(tempSha));
-            projectAnalysisList.add(projectAnalysisService.runCommand(project, tempSha, homeDirectory));
+            if (branch == null){
+                projectAnalysisList.add(projectAnalysisService.runCommand(project, tempSha, homeDirectory));
+                project.setProjectAnalysis(projectAnalysisList);
+            }else {
+                singleAnalyzedProjects.add(projectAnalysisService.runCommand(project, tempSha, homeDirectory));
+            }
         }
-
-        project.setProjectAnalysis(projectAnalysisList);
 
         repo.close();
         git.close();
@@ -120,7 +126,7 @@ public class ProjectService {
         project.setOwner(url[3]);
     }
 
-    public void cloneRepository(Git git, String owner, String repoName, String cloneDir) throws Exception {
+    public void cloneRepository(Git git, String owner, String repoName, String cloneDir, String branch) throws Exception {
 
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getInterceptors().add((request, body, execution) -> execution.execute(request, body));
@@ -134,6 +140,13 @@ public class ProjectService {
         String cloneUrl = (String) json.get("clone_url");
 
         git.cloneRepository().setURI(cloneUrl).setDirectory(new File(cloneDir)).call();
+        if (branch != null) {
+            Ref ref = git.checkout().
+                    setCreateBranch(true).
+                    setName(branch).
+                    setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).
+                    setStartPoint("origin/" + branch).
+                    call();        }
 
     }
 
@@ -143,6 +156,14 @@ public class ProjectService {
 
     public void saveProject(Project resultProject) {
         projectRepository.save(resultProject);
+    }
+
+    public void deleteProject(String gitUrl) {
+        projectRepository.deleteByGitUrl(gitUrl);
+    }
+
+    public Optional<Project> getProjectById(Long projectId) {
+        return projectRepository.findById(projectId);
     }
 
 }

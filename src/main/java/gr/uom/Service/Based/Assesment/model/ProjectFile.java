@@ -1,5 +1,6 @@
 package gr.uom.Service.Based.Assesment.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.io.File;
@@ -13,6 +14,7 @@ public class ProjectFile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @Column(name = "firstFile")
+    @JsonIgnore
     File firstFile;
     @Column(name = "name")
     String name;
@@ -31,6 +33,7 @@ public class ProjectFile {
     @ElementCollection
     Map<String, Double> similarity;
     @ManyToOne
+    @JsonIgnore
     private ProjectAnalysis projectAnalysis;
     @Column(name = "projectName")
     private String projectName;

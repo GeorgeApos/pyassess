@@ -25,7 +25,7 @@ public class ProjectController {
     @CrossOrigin(origins = "*")
     @PostMapping("/")
     public ResponseEntity<Project> startAnalysis(@RequestParam("gitUrl") String gitUrl) throws Exception {
-        Project resultProject = appProjectService.runCommand(gitUrl, true);
+        Project resultProject = appProjectService.runCommand(gitUrl, null,true);
         appProjectService.saveProject(resultProject);
         return ResponseEntity.ok(resultProject);
     }
@@ -42,6 +42,24 @@ public class ProjectController {
             return ResponseEntity.notFound().build();
         }
     }
-    
+
+    @CrossOrigin(origins = "*")
+    @DeleteMapping("/")
+    public ResponseEntity<String> deleteProject(@RequestParam("gitUrl") String gitUrl) {
+        appProjectService.deleteProject(gitUrl);
+        return ResponseEntity.ok("Project with Git URL " + gitUrl + " has been deleted");
+    }
+
+    @CrossOrigin(origins = "*")
+    @PutMapping("/")
+    public ResponseEntity<Project> updateProject(@RequestParam("projectId") Long projectId, @RequestParam("gitUrl") String gitUrl) throws Exception {
+        Optional<Project> project = appProjectService.getProjectById(projectId);
+        if (project.isPresent()) {
+            Project updatedProject = appProjectService.runCommand(gitUrl, "main",true);
+            return ResponseEntity.ok(updatedProject);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 
 }

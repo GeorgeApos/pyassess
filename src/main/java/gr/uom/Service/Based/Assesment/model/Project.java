@@ -23,6 +23,8 @@ public class Project {
     private List<String> SHA = new ArrayList<>();
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     private List<ProjectAnalysis> projectAnalysis = new ArrayList<>();
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    private List<ProjectAnalysis> singleAnalyzedProjectList = new ArrayList<>();
     public Project() {
     }
 
@@ -36,6 +38,14 @@ public class Project {
                 ", name='" + name + '\'' +
                 ", directory='" + directory + '\'' +
                 '}';
+    }
+
+    public List<ProjectAnalysis> getSingleAnalyzedProjectList() {
+        return singleAnalyzedProjectList;
+    }
+
+    public void setSingleAnalyzedProjectList(List<ProjectAnalysis> singleAnalyzedProjectList) {
+        this.singleAnalyzedProjectList = singleAnalyzedProjectList;
     }
 
     public List<String> getSHA() {

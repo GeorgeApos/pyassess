@@ -29,27 +29,6 @@ public class ProjectAnalysisService {
     @Autowired
     private ProjectFileRepository projectFileRepository;
 
-    public void cloneRepository(String owner, String repoName, String cloneDir) throws Exception {
-
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.getInterceptors().add((request, body, execution) -> execution.execute(request, body));
-
-        String apiUrl = "https://api.github.com/repos/" + owner + "/" + repoName;
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<Map> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, Map.class);
-        Map<String, Object> json = response.getBody();
-        String cloneUrl = (String) json.get("clone_url");
-
-        Git clone = Git.cloneRepository()
-                .setURI(cloneUrl)
-                .setDirectory(new File(cloneDir))
-                .call();
-
-        clone.close();
-    }
-
     private int i;
     public ProjectAnalysis runCommand(Project mainProject, String sha, String gitUrl) throws Exception {
         ProjectAnalysis mainProjectAnalysis = new ProjectAnalysis();

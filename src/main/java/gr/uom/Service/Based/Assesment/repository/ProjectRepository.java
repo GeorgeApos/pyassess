@@ -15,4 +15,5 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     Project findProjectByDirectory(String directory);
 
+    void deleteByGitUrl(String gitUrl);
 }

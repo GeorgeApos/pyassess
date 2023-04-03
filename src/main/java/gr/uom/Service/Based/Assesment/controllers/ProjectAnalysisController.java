@@ -5,6 +5,7 @@ import gr.uom.Service.Based.Assesment.model.ProjectAnalysis;
 import gr.uom.Service.Based.Assesment.model.ProjectFile;
 import gr.uom.Service.Based.Assesment.repository.ProjectFileRepository;
 import gr.uom.Service.Based.Assesment.repository.ProjectAnalysisRepository;
+import gr.uom.Service.Based.Assesment.repository.ProjectRepository;
 import gr.uom.Service.Based.Assesment.service.ProjectAnalysisService;
 import gr.uom.Service.Based.Assesment.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,24 +20,20 @@ import java.util.Optional;
 public class ProjectAnalysisController {
 
     @Autowired
+    private ProjectRepository ProjectRepository;
+
+    @Autowired
     private ProjectService appProjectService;
 
     @Autowired
     private ProjectAnalysisService appProjectAnalysisService;
 
-    @Autowired
-    private ProjectAnalysisRepository projectAnalysisRepository;
-
-    @Autowired
-    private ProjectFileRepository projectFileRepository;
-
-
     @CrossOrigin(origins = "*")
     @PostMapping("/")
-    public ResponseEntity<Project> handleSimpleRequest(@RequestParam("gitUrl") String gitUrl) throws Exception {
-        Project savedProjectAnalysis = appProjectService.runCommand(gitUrl, false);
-        appProjectService.saveProject(savedProjectAnalysis);
-        return ResponseEntity.ok(savedProjectAnalysis);
+    public ResponseEntity<Project> handleSimpleRequest(@RequestParam("gitUrl") String gitUrl, @RequestParam("branch") String branch) throws Exception {
+        Project resultProject = appProjectService.runCommand(gitUrl, branch,true);
+        appProjectService.saveProject(resultProject);
+        return ResponseEntity.ok(resultProject);
     }
 
     @CrossOrigin(origins = "*")
