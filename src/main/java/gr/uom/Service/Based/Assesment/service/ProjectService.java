@@ -78,6 +78,7 @@ public class ProjectService {
                 project.setProjectAnalysis(projectAnalysisList);
             }else {
                 singleAnalyzedProjects.add(projectAnalysisService.runCommand(project, tempSha, homeDirectory));
+                project.setSingleAnalyzedProjectList(singleAnalyzedProjects);
             }
         }
 
