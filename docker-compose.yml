@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   app:
-    image: 'geoapos/service_based_assessment_of_python_code_quality_including_history:latest'
+    image: 'geoapos/python_quality_evaluator:latest'
     build:
       context: .
     container_name: app
