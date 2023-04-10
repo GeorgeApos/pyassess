@@ -1,5 +1,6 @@
 package gr.uom.Service.Based.Assesment.controllers;
 
+import gr.uom.Service.Based.Assesment.model.Comment;
 import gr.uom.Service.Based.Assesment.model.Project;
 import gr.uom.Service.Based.Assesment.model.ProjectAnalysis;
 import gr.uom.Service.Based.Assesment.model.ProjectFile;
@@ -60,6 +61,19 @@ public class ProjectController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @CrossOrigin(origins = "*")
+    @GetMapping("/comments")
+    public ResponseEntity<List<Comment>> getComments(@RequestParam("gitUrl") String gitUrl, @RequestParam("sha") String sha, @RequestParam("fileName") String fileName) {
+        Optional<Project> project = appProjectService.getProjectByGitUrl(gitUrl);
+        List<ProjectFile> files = appProjectAnalysisService.getProjectFilesByName(project.get().getName());
+        for (ProjectFile file : files) {
+            if (project.get().getSHA().contains(sha) && file.getName().equals(fileName)) {
+                return ResponseEntity.ok(file.getComments());
+            }
+        }
+        return ResponseEntity.notFound().build();
     }
 
 }

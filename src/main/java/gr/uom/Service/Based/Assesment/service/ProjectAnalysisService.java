@@ -103,7 +103,7 @@ public class ProjectAnalysisService {
         return mainProjectAnalysis;
     }
 
-    public String findSHA(String owner, String repoName) throws Exception {
+    public String findSHA(String owner, String repoName) {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getInterceptors().add((request, body, execution) -> execution.execute(request, body));
 

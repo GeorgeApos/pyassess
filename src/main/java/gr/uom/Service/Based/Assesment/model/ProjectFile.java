@@ -25,6 +25,7 @@ public class ProjectFile {
     @Column(name = "coverage")
     int coverage;
     @OneToMany(cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Comment> comments;
     @Column(name = "rating")
     Double rating;
@@ -36,6 +37,7 @@ public class ProjectFile {
     @JsonIgnore
     private ProjectAnalysis projectAnalysis;
     @Column(name = "projectName")
+    @JsonIgnore
     private String projectName;
 
     public ProjectFile(File firstFile, Map<String, Double> similarity){
@@ -59,7 +61,6 @@ public class ProjectFile {
                 ", rating=" + rating +
                 ", previousRating=" + previousRating +
                 ", similarity=" + similarity +
-                ", projectName=" + projectName +
                 '}';
     }
 
