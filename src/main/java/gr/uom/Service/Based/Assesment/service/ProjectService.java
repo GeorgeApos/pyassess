@@ -69,6 +69,7 @@ public class ProjectService {
                 ObjectId commitId = repo.resolve(sha);
                 git.checkout().setName(commitId.getName()).call();
                 projectAnalysisList.add(projectAnalysisService.runCommand(project, sha, homeDirectory));
+                project.setProjectAnalysis(projectAnalysisList);
             }
         } else {
             String tempSha = projectAnalysisService.findSHA(project.getOwner(), project.getName());

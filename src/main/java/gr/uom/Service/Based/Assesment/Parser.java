@@ -76,7 +76,8 @@ public class Parser {
                         }
                     }
                 }
-            } else if (response.startsWith("TOTAL")){
+            }
+            else if (response.startsWith("TOTAL")){
                 Pattern totalStmtsPattern = Pattern.compile(regexPattern(command,"totalStmts"));
                 Matcher totalStmtsMatcher = totalStmtsPattern.matcher(response);
                 Boolean totalStmtsFind = totalStmtsMatcher.find();
@@ -101,10 +102,7 @@ public class Parser {
                     projectAnalysis.setTotalCoverage(cov);
                 }
             }
-        } else if(command.startsWith("pylint")) {
-
         }
-
     }
 
     public static void storeDepsInProject(ProjectAnalysis projectAnalysis, ArrayList<String> dependencies, int dependenciesCounter){
