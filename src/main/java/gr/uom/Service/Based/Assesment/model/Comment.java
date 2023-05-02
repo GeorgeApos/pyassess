@@ -10,21 +10,21 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @Column(name = "comment", columnDefinition = "TEXT")
-    String comment;
+    String content;
 
-    public Comment(String comment) {
-        this.comment = comment;
+    public Comment(String content) {
+        this.content = content;
     }
 
     public Comment() {
 
     }
 
-    public String getComment() {
-        return comment;
+    public String getContent() {
+        return content;
     }
 
-    public void setComment(String comment) {
-        this.comment = comment;
+    public void setContent(String comment) {
+        this.content = comment;
     }
 }

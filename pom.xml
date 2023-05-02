@@ -12,7 +12,7 @@
 	<artifactId>Service-Based-Assesment</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Service Based Assessment of code quality</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Demo projectAnalysis for Spring Boot</description>
 	<properties>
 		<java.version>17</java.version>
 	</properties>
@@ -61,7 +61,16 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.11.0</version>
 		</dependency>
-    </dependencies>
+		<dependency>
+			<groupId>org.eclipse.mylyn.github</groupId>
+			<artifactId>org.eclipse.egit.github.core</artifactId>
+			<version>2.1.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>

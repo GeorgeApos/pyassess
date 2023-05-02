@@ -11,30 +11,20 @@ public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @Column(name = "gitUrl", unique = true)
+    @Column(name = "gitUrl")
     private String gitUrl;
-    @Column(name = "SHA")
-    private String SHA;
     @Column(name = "owner")
     private String owner;
-    @Column(name = "name", unique = true)
+    @Column(name = "name")
     private String name;
     @Column(name = "directory")
     private String directory;
     @ElementCollection
-    @Column(name = "dependencies")
-    private List<String> dependencies;
-    @Column(name = "dependenciesCounter")
-    private long dependenciesCounter;
+    private List<String> SHA = new ArrayList<>();
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    private List<ProjectFile> files = new ArrayList<>();
-    @Column(name = "totalCoverage")
-    private long totalCoverage;
-    @Column(name = "totalMiss")
-    private long totalMiss;
-    @Column(name = "totalStmts")
-    private long totalStmts;
-
+    private List<ProjectAnalysis> projectAnalysis = new ArrayList<>();
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    private List<ProjectAnalysis> singleAnalyzedProjectList = new ArrayList<>();
     public Project() {
     }
 
@@ -47,15 +37,32 @@ public class Project {
                 ", owner='" + owner + '\'' +
                 ", name='" + name + '\'' +
                 ", directory='" + directory + '\'' +
-                ", dependencies=" + dependencies +
-                ", dependenciesCounter=" + dependenciesCounter +
-                ", files=" + files +
-                ", totalCoverage=" + totalCoverage +
-                ", totalMiss=" + totalMiss +
-                ", totalStmts=" + totalStmts +
                 '}';
     }
 
+    public List<ProjectAnalysis> getSingleAnalyzedProjectList() {
+        return singleAnalyzedProjectList;
+    }
+
+    public void setSingleAnalyzedProjectList(List<ProjectAnalysis> singleAnalyzedProjectList) {
+        this.singleAnalyzedProjectList = singleAnalyzedProjectList;
+    }
+
+    public List<String> getSHA() {
+        return SHA;
+    }
+
+    public void setSHA(List<String> SHA) {
+        this.SHA = SHA;
+    }
+
+    public List<ProjectAnalysis> getProjectAnalysis() {
+        return projectAnalysis;
+    }
+
+    public void setProjectAnalysis(List<ProjectAnalysis> projectAnalysis) {
+        this.projectAnalysis = projectAnalysis;
+    }
 
     public int getId() {
         return id;
@@ -71,14 +78,6 @@ public class Project {
 
     public void setGitUrl(String gitUrl) {
         this.gitUrl = gitUrl;
-    }
-
-    public String getSHA() {
-        return SHA;
-    }
-
-    public void setSHA(String SHA) {
-        this.SHA = SHA;
     }
 
     public String getOwner() {
@@ -104,53 +103,4 @@ public class Project {
     public void setDirectory(String directory) {
         this.directory = directory;
     }
-
-    public List<String> getDependencies() {
-        return dependencies;
-    }
-
-    public void setDependencies(List<String> dependencies) {
-        this.dependencies = dependencies;
-    }
-
-    public long getDependenciesCounter() {
-        return dependenciesCounter;
-    }
-
-    public void setDependenciesCounter(long dependenciesCounter) {
-        this.dependenciesCounter = dependenciesCounter;
-    }
-
-    public List<ProjectFile> getFiles() {
-        return files;
-    }
-
-    public void setFiles(List<ProjectFile> files) {
-        this.files = files;
-    }
-
-    public long getTotalCoverage() {
-        return totalCoverage;
-    }
-
-    public void setTotalCoverage(long totalCoverage) {
-        this.totalCoverage = totalCoverage;
-    }
-
-    public long getTotalMiss() {
-        return totalMiss;
-    }
-
-    public void setTotalMiss(long totalMiss) {
-        this.totalMiss = totalMiss;
-    }
-
-    public long getTotalStmts() {
-        return totalStmts;
-    }
-
-    public void setTotalStmts(long totalStmts) {
-        this.totalStmts = totalStmts;
-    }
 }
-

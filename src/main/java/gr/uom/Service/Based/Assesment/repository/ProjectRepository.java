@@ -1,16 +1,19 @@
 package gr.uom.Service.Based.Assesment.repository;
 
-import gr.uom.Service.Based.Assesment.model.Project;
 import org.springframework.data.jpa.repository.JpaRepository;
+import gr.uom.Service.Based.Assesment.model.Project;
 
 import java.util.Optional;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
+
     Optional<Project> findProjectByGitUrl(String gitUrl);
 
-    Project findProjectBySHA(String sha);
+    Project findProjectByName(String name);
 
-    boolean existsProjectBySHA(String sha);
+    Project findProjectByOwner(String owner);
 
-    void removeProjectBySHA(String sha);
+    Project findProjectByDirectory(String directory);
+
+    void deleteByGitUrl(String gitUrl);
 }
