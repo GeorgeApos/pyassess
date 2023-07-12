@@ -1,0 +1,61 @@
+/* Project Data Container */
+.project-data-container {
+    margin: 20px;
+    font-family: "Roboto Light", sans-serif;
+}
+
+/* Section Titles */
+.section-title {
+    margin-bottom: 10px;
+    font-size: 24px;
+}
+
+/* Data Tables */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #ddd;
+}
+
+/* Table Head */
+.table-head {
+    background-color: #f2f2f2;
+    color: #1a1a1a;
+}
+
+
+/* Table Headers */
+.table-header,
+.table-data {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+/* Back Button */
+.back-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+/* Hover over the button */
+.back-button:hover {
+    background-color: #3e8e41;
+}
+
+.chart-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
+
+.chart {
+    width: calc(50% - 10px);
+    margin-bottom: 20px;
+}

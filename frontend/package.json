@@ -1,0 +1,34 @@
+{
+  "name": "service-based-assessment-of-python-code-quality",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@chakra-ui/react": "^2.5.1",
+    "@emotion/react": "^11.10.6",
+    "@emotion/styled": "^11.10.6",
+    "axios": "^1.3.4",
+    "dotenv": "^16.0.3",
+    "framer-motion": "^10.2.3",
+    "process": "^0.11.10",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router": "^6.8.2",
+    "recharts": "^2.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.14.6",
+    "@types/react": "^18.0.27",
+    "@types/react-dom": "^18.0.10",
+    "@vitejs/plugin-react": "^3.1.0",
+    "react-router-dom": "^6.8.2",
+    "typescript": "^4.9.3",
+    "vite": "^4.1.0"
+  }
+}
