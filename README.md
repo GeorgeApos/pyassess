@@ -1,4 +1,4 @@
-# Python Code Evaluator
+# PyAssess
 This Spring Boot application is designed to evaluate Python code using various tests such as Pylint, Pytest,PiPreQs and Duplication Code Detection Tool. With this application, you can test your Python code and receive feedback on its quality and performance.
 
 # Requirements
