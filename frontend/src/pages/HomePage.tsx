@@ -27,7 +27,7 @@ export const HomePage = () => {
     }
 
     const handleShowButtonClick = () => {
-        axios.get(`http://${localhost}:8080/projects/?gitUrl=${inputValue}`,
+        axios.get(`http://${localhost}/project_historic_analysis/?gitUrl=${inputValue}`,
             {headers: {'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'}})
             .then((response) => {
@@ -40,9 +40,9 @@ export const HomePage = () => {
             });
     }
 
-    const handleStartButtonClick = () => {
+    const handleHistoricAnalysisStartButtonClick = () => {
         setLoading(true);
-        axios.post(`http://${localhost}:8080/projects/?gitUrl=${inputValue}`,
+        axios.post(`http://${localhost}/project_historic_analysis/?gitUrl=${inputValue}`,
             {headers: {'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'}})
             .then((response) => {
@@ -54,6 +54,22 @@ export const HomePage = () => {
                 setLoading(false);
             });
     }
+
+    const handleStartButtonClick = () => {
+        setLoading(true);
+        axios.post(`http://${localhost}/project_analysis/?gitUrl=${inputValue}`,
+            {headers: {'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'}})
+            .then((response) => {
+                setLoading(false);
+                setResponseData(response.data);
+            })
+            .catch((error) => {
+                console.error(error);
+                setLoading(false);
+            });
+    }
+
 
     const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInputValue(event.target.value);
@@ -179,9 +195,16 @@ export const HomePage = () => {
                             <button
                                 type={"submit"}
                                 style={{ marginTop: 20, marginRight: 20 }}
+                                onClick={handleHistoricAnalysisStartButtonClick}
+                            >
+                                Start Project Historic Analysis
+                            </button>
+                            <button
+                                type={"submit"}
+                                style={{ marginTop: 20, marginRight: 20 }}
                                 onClick={handleStartButtonClick}
                             >
-                                Start Analysis
+                                Start Project  Analysis
                             </button>
                             <button
                                 type={"submit"}
