@@ -207,39 +207,46 @@ public class Parser {
 
         for (int i = 0; i < commentsResponse.size(); i++) {
             String currentLine = commentsResponse.get(i);
-            if (currentLine.startsWith("************* Module")) {
 
-                Pattern filePattern = Pattern.compile(regexPattern("pylint", "file"));
-                Matcher fileMatcher = filePattern.matcher(currentLine);
-                Boolean fileFind = fileMatcher.find();
-                if (fileFind) {
-                    mainFile = fileMatcher.group(1);
-                    currentProjectFile = findProjectFile(mainFile, fileList);
-                }
+            if (currentLine.startsWith("************* Module")) {
+                handleModuleLine(currentLine, fileList, projectAnalysis, comments, currentProjectFile);
             } else if (currentLine.startsWith(projectAnalysis.getName())) {
                 comments.add(new Comment(currentLine.replace("'", "\\'")));
             } else if (currentLine.contains("Your code has been rated at")) {
-                if (currentProjectFile != null) {
-                    currentProjectFile.setComments(comments);
-                    comments = new ArrayList<>();
-                    Pattern ratingPattern = Pattern.compile(regexPattern("pylint", "rating"));
-                    Matcher ratingMatcher = ratingPattern.matcher(currentLine);
-                    Boolean ratingFind = ratingMatcher.find();
-
-                    Pattern previousRatingPattern = Pattern.compile(regexPattern("pylint", "previousRating"));
-                    Matcher previousRatingMatcher = previousRatingPattern.matcher(currentLine);
-                    Boolean previousRatingFind = previousRatingMatcher.find();
-
-                    if (ratingFind) {
-                        Double rating = Double.valueOf(ratingMatcher.group(1));
-                        currentProjectFile.setRating(rating);
-                    }
-                    if (previousRatingFind) {
-                        Double previousRating = Double.valueOf(previousRatingMatcher.group(1));
-                        currentProjectFile.setPreviousRating(previousRating);
-                    }
-                }
+                handleRatingLine(currentLine, currentProjectFile);
             }
+        }
+    }
+
+    private static void handleModuleLine(String currentLine, ArrayList<ProjectFile> fileList, ProjectAnalysis projectAnalysis, List<Comment> comments, ProjectFile currentProjectFile) {
+        Pattern filePattern = Pattern.compile(regexPattern("pylint", "file"));
+        Matcher fileMatcher = filePattern.matcher(currentLine);
+        if (fileMatcher.find()) {
+            String mainFile = fileMatcher.group(1);
+            currentProjectFile = findProjectFile(mainFile, fileList);
+        }
+    }
+
+    private static void handleRatingLine(String currentLine, ProjectFile currentProjectFile) {
+        if (currentProjectFile != null) {
+            Pattern ratingPattern = Pattern.compile(regexPattern("pylint", "rating"));
+            Matcher ratingMatcher = ratingPattern.matcher(currentLine);
+
+            Pattern previousRatingPattern = Pattern.compile(regexPattern("pylint", "previousRating"));
+            Matcher previousRatingMatcher = previousRatingPattern.matcher(currentLine);
+
+            if (ratingMatcher.find()) {
+                Double rating = Double.valueOf(ratingMatcher.group(1));
+                currentProjectFile.setRating(rating);
+            }
+
+            if (previousRatingMatcher.find()) {
+                Double previousRating = Double.valueOf(previousRatingMatcher.group(1));
+                currentProjectFile.setPreviousRating(previousRating);
+            }
+
+            currentProjectFile.setComments(comments);
+            comments = new ArrayList<>();
         }
     }
 
