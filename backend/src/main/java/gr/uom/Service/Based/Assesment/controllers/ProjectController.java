@@ -176,16 +176,14 @@ public class ProjectController {
         Optional<Project> project = appProjectService.getProjectByGitUrl(gitUrl);
         List<ProjectAnalysis> projectAnalysis = appProjectAnalysisService.getProjectAnalysisByProjectName(project.get().getName());
         List<ProjectFile> files = appProjectAnalysisService.getProjectFilesByName(project.get().getName());
-        for (ProjectAnalysis analysis : projectAnalysis) {
-            int number = 0;
-            for (ProjectFile file : files) {
-                if (file.getName().equals(fileName)) {
-                    responseComFiles.add(file.getComments());
-                    number++;
-                }
+        int number = 0;
+        for (ProjectFile file : files) {
+            if (file.getName().equals(fileName)) {
+                responseComFiles.add(file.getComments());
+                number++;
             }
-            System.out.println(number);
         }
+        System.out.println(number);
         if (responseComFiles.size() > 0) {
             return ResponseEntity.ok(responseComFiles);
         } else {
