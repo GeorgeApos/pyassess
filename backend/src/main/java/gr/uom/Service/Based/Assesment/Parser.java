@@ -16,6 +16,48 @@ import static org.apache.sshd.common.util.GenericUtils.length;
 
 public class Parser {
 
+    private static final Map<String, Map<String, String>> REGEX_PATTERNS = new HashMap<>();
+
+    static {
+        Map<String, String> windowsPatterns = new HashMap<>();
+        Map<String, String> unixPatterns = new HashMap<>();
+
+        windowsPatterns.put("file", "([^\\\\]+.py)");
+        windowsPatterns.put("cov", ".*[\\s]+([0-9]+)");
+        windowsPatterns.put("miss", ".*[\\s]+([0-9]+)[\\s]+[0-9]+");
+        windowsPatterns.put("stmts", "^.*?[^\\s]+[\\s]+([0-9]+)[\\s]+[0-9]+[\\s]+[0-9]+");
+        windowsPatterns.put("totalCov", "^TOTAL\\s+\\d+\\s+\\d+\\s+([0-9]+).");
+        windowsPatterns.put("totalMiss", "^TOTAL\\s+\\d+\\s+([0-9]+)");
+        windowsPatterns.put("totalStmts", "^TOTAL\\s+([0-9]+)");
+
+        windowsPatterns.put("mainFile", "([^\\\\]+.py)");
+        windowsPatterns.put("file", "([^\\\\]+.py)");
+        windowsPatterns.put("similarity", "m([+-]?[0-9]*\\.?[0-9]+(?:[eE][+-]?[0-9]+)?)");
+
+        windowsPatterns.put("file", "\\b(\\w+)$");
+        windowsPatterns.put("rating", "at (\\b[0-9]+\\.[0-9]+)/10");
+        windowsPatterns.put("previousRating", "run: (\\b[0-9]+\\.[0.9]+)/10");
+
+        unixPatterns.put("file", "([^/]+.py)");
+        unixPatterns.put("cov", ".*\\s+\\d+\\s+\\d+\\s+(\\d+)%");
+        unixPatterns.put("miss", ".*\\s+\\d+\\s+(\\d+)\\s+\\d+%");
+        unixPatterns.put("stmts", ".*\\s+(\\d+)\\s+\\d+\\s+\\d+%");
+        unixPatterns.put("totalCov", "^TOTAL\\s+\\d+\\s+\\d+\\s+([0-9]+).");
+        unixPatterns.put("totalMiss", "^TOTAL\\s+\\d+\\s+([0-9]+)");
+        unixPatterns.put("totalStmts", "^TOTAL\\s+([0-9]+)");
+
+        unixPatterns.put("mainFile", "([^/]+.py)");
+        unixPatterns.put("file", "([^/]+.py)");
+        unixPatterns.put("similarity", "([0-9]+\\.[0-9]+)");
+
+        unixPatterns.put("file", "\\b(\\w+)$");
+        unixPatterns.put("rating", "at (\\b[0-9]+\\.[0-9]+)/10");
+        unixPatterns.put("previousRating", "run: (\\b[0-9]+\\.[0.9]+)/10");
+
+        REGEX_PATTERNS.put("Windows", windowsPatterns);
+        REGEX_PATTERNS.put("Unix", unixPatterns);
+    }
+
     public static void storeUrlOwnerAndName(String gitUrl, ProjectAnalysis mainProjectAnalysis) {
         String[] url = gitUrl.split("/");
         mainProjectAnalysis.setGitUrl(gitUrl);
@@ -201,77 +243,12 @@ public class Parser {
         }
     }
 
-    private static String regexPattern(String command, String request){
+    private static String regexPattern(String command, String request) {
         Boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+        Map<String, String> patterns = REGEX_PATTERNS.get(isWindows ? "Windows" : "Unix");
 
-        if(isWindows){
-            if(command.startsWith("pytest")){
-                if(request.equals("file")){
-                    return "([^\\\\]+.py)";
-                }else if(request.equals("cov")) {
-                    return ".*[\\s]+([0-9]+)";
-                }else if(request.equals("miss")) {
-                    return ".*[\\s]+([0-9]+)[\\s]+[0-9]+";
-                }else if(request.equals("stmts")) {
-                    return "^.*?[^\\s]+[\\s]+([0-9]+)[\\s]+[0-9]+[\\s]+[0-9]+";
-                }else if(request.equals("totalCov")) {
-                    return "^TOTAL\\s+\\d+\\s+\\d+\\s+([0-9]+).";
-                }else if(request.equals("totalMiss")) {
-                    return "^TOTAL\\s+\\d+\\s+([0-9]+)";
-                }else if(request.equals("totalStmts")) {
-                    return "^TOTAL\\s+([0-9]+)";
-                }
-            }else if (command.startsWith("duplication")){
-                if(request.equals("mainFile")){
-                    return "([^\\\\]+.py)";
-                }else if(request.equals("file")) {
-                    return "([^\\\\]+.py)";
-                }else if(request.equals("similarity")) {
-                    return "m([+-]?[0-9]*\\.?[0-9]+(?:[eE][+-]?[0-9]+)?)";
-                }
-            }else if(command.startsWith("pylint")){
-                if(request.equals("file")){
-                    return "\\b(\\w+)$";
-                }else if(request.equals("rating")) {
-                    return "at (\\b[0-9]+\\.[0-9]+)/10";
-                }else if(request.equals("previousRating")) {
-                    return "run: (\\b[0-9]+\\.[0-9]+)/10";
-                }
-            }
-        }else {
-            if(command.startsWith("pytest")){
-                if(request.equals("file")){
-                    return "([^/]+.py)";
-                }else if(request.equals("cov")) {
-                    return ".*\\s+\\d+\\s+\\d+\\s+(\\d+)%";
-                }else if(request.equals("miss")) {
-                    return ".*\\s+\\d+\\s+(\\d+)\\s+\\d+%";
-                }else if(request.equals("stmts")) {
-                    return ".*\\s+(\\d+)\\s+\\d+\\s+\\d+%";
-                }else if(request.equals("totalCov")) {
-                    return "^TOTAL\\s+\\d+\\s+\\d+\\s+([0-9]+).";
-                }else if(request.equals("totalMiss")) {
-                    return "^TOTAL\\s+\\d+\\s+([0-9]+)";
-                }else if(request.equals("totalStmts")) {
-                    return "^TOTAL\\s+([0-9]+)";
-                }
-            }else if (command.startsWith("duplication")){
-                if(request.equals("mainFile")){
-                    return "([^/]+.py)";
-                }else if(request.equals("file")) {
-                    return "([^/]+.py)";
-                }else if(request.equals("similarity")) {
-                    return "([0-9]+\\.[0-9]+)";
-                }
-            }else if(command.startsWith("pylint")){
-                if(request.equals("file")){
-                    return "\\b(\\w+)$";
-                }else if(request.equals("rating")) {
-                    return "at (\\b[0-9]+\\.[0-9]+)/10";
-                }else if(request.equals("previousRating")) {
-                    return "run: (\\b[0-9]+\\.[0-9]+)/10";
-                }
-            }
+        if (patterns != null && patterns.containsKey(request)) {
+            return patterns.get(request);
         }
 
         return "";
