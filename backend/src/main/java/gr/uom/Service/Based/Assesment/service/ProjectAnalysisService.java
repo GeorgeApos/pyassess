@@ -121,34 +121,43 @@ public class ProjectAnalysisService {
     public void executeCommand(ProjectAnalysis projectAnalysis, ArrayList<ProjectFile> fileList, String command, String destination) throws IOException, InterruptedException {
         ArrayList<String> similarityResponse = new ArrayList<>();
         ArrayList<String> commentsResponse = new ArrayList<>();
+
         Process p = Runtime.getRuntime().exec(command + destination);
         InputStream is = p.getInputStream();
+
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
             List<String> lines = reader.lines().collect(Collectors.toList());
+
             for (String line : lines) {
-                if(command.startsWith("python3 -W ignore " + System.getProperty("user.dir")+ File.separator + "duplicate-code-detection-tool/duplicate_code_detection.py -d  ")){
-                    if(line.contains("Code duplication probability for") || line.startsWith(projectAnalysis.getDirectory())){
-                        similarityResponse.add(line);
-                    }
-                }else if(command.startsWith("pylint")){
-                    if(line.contains("Your code has been rated at") || line.startsWith("************* Module ") || line.startsWith(projectAnalysis.getName())) {
-                        commentsResponse.add(line);
-                    }
-                }else if(command.startsWith("pytest")){
-                    if(line.startsWith(projectAnalysis.getName()) || line.startsWith("TOTAL")){
-                        storeDataInObjects(projectAnalysis, fileList, line, command);
-                    }
-                }
+                handleLine(line, projectAnalysis, similarityResponse, commentsResponse, fileList);
                 System.out.println(line);
-            }
-            if (similarityResponse.size()>0){
-                storeSimilarity(similarityResponse, fileList, projectAnalysis);
-            }
-            if (commentsResponse.size()>0) {
-                storeComments(commentsResponse, fileList, projectAnalysis);
             }
         }
 
+        storeIfNotEmpty(similarityResponse, fileList, projectAnalysis, this::storeSimilarity);
+        storeIfNotEmpty(commentsResponse, fileList, projectAnalysis, this::storeComments);
+    }
+
+    private void handleLine(String line, ProjectAnalysis projectAnalysis, ArrayList<String> similarityResponse, ArrayList<String> commentsResponse, ArrayList<ProjectFile> fileList) {
+        if (command.startsWith("python3 -W ignore " + System.getProperty("user.dir") + File.separator + "duplicate-code-detection-tool/duplicate_code_detection.py -d ")) {
+            if (line.contains("Code duplication probability for") || line.startsWith(projectAnalysis.getDirectory())) {
+                similarityResponse.add(line);
+            }
+        } else if (command.startsWith("pylint")) {
+            if (line.contains("Your code has been rated at") || line.startsWith("************* Module ") || line.startsWith(projectAnalysis.getName())) {
+                commentsResponse.add(line);
+            }
+        } else if (command.startsWith("pytest")) {
+            if (line.startsWith(projectAnalysis.getName()) || line.startsWith("TOTAL")) {
+                storeDataInObjects(projectAnalysis, fileList, line, command);
+            }
+        }
+    }
+
+    private void storeIfNotEmpty(ArrayList<String> response, ArrayList<ProjectFile> fileList, ProjectAnalysis projectAnalysis, Consumer<ArrayList<String>> storeMethod) {
+        if (!response.isEmpty()) {
+            storeMethod.accept(response);
+        }
     }
 
 
