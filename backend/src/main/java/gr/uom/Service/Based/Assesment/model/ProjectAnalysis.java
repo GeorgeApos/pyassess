@@ -42,7 +42,9 @@ public class ProjectAnalysis {
     private Project project;
 
     public ProjectAnalysis() {
+        // This empty constructor is provided for Hibernate and should not be used for general object creation.
     }
+
 
     @Override
     public String toString() {
